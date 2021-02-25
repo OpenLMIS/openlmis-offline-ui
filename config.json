@@ -1,0 +1,9 @@
+{
+  "orderedBuildDirectories": [
+    "/openlmis-ui-components",
+    "/openlmis-auth-ui",
+    "/openlmis-ui-layout",
+    "/openlmis-referencedata-ui",
+    "/openlmis-stockmanagement-ui"
+  ]
+}
