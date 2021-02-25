@@ -1,5 +1,4 @@
-# OpenLMIS Stock Management UI Module
-This repository is the UI for the [OpenLMIS Stock Management Service.](https://github.com/OpenLMIS/openlmis-stockmanagement)
+# OpenLMIS Offline UI Module
 
 ## Prerequisites
 * Docker 1.11+
