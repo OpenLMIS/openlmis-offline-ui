@@ -19,7 +19,7 @@
 
     /**
      * @ngdoc service
-     * @name referencedata-pending-offline-events-indicator.pending-offline-events
+     * @name referencedata-pending-offline-events-indicator.pendingOfflineEventsService
      *
      * @description
      * Decorates methods to the pendingOfflineEventsService, making it so the 
