@@ -29,6 +29,7 @@
         'referencedata-facility',
         'referencedata-program',
         'referencedata-lot',
+        'stock-adjustment-creation',
         'stock-reason'
     ]);
 

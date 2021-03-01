@@ -36,7 +36,6 @@
             resolve: {
                 offlineEvents: function(paginationService, $stateParams, eventsService) {
                     return paginationService.registerList(null, $stateParams, function() {
-                        console.log('state params: ', $stateParams);
                         return eventsService.search($stateParams);
                     });
                 }

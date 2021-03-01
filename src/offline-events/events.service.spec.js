@@ -34,6 +34,19 @@ describe('eventsService', function() {
             this.$q = $injector.get('$q');
             this.$rootScope = $injector.get('$rootScope');
             this.eventsService = $injector.get('eventsService');
+            this.lotService = $injector.get('lotService');
+            this.stockReasonsFactory = $injector.get('stockReasonsFactory');
+            this.programService = $injector.get('programService');
+            this.facilityFactory = $injector.get('facilityFactory');
+            this.OrderableResource = $injector.get('OrderableResource');
+            this.LotResource = $injector.get('LotResource');
+            this.LotDataBuilder = $injector.get('LotDataBuilder');
+            this.PageDataBuilder = $injector.get('PageDataBuilder');
+            this.ProgramDataBuilder = $injector.get('ProgramDataBuilder');
+            this.FacilityDataBuilder = $injector.get('FacilityDataBuilder');
+            this.OrderableDataBuilder = $injector.get('OrderableDataBuilder');
+            this.ProgramOrderableDataBuilder = $injector.get('ProgramOrderableDataBuilder');
+            this.ReasonDataBuilder = $injector.get('ReasonDataBuilder');
         });
 
         this.localStorageEvents = {};
@@ -70,6 +83,95 @@ describe('eventsService', function() {
         this.user3 = {
             id: 'user_3'
         };
+
+        this.program1 = new this.ProgramDataBuilder().build();
+        this.program2 = new this.ProgramDataBuilder().build();
+
+        this.programs = [
+            this.program1,
+            this.program2
+        ];
+
+        this.homeFacility = new this.FacilityDataBuilder()
+            .withSupportedPrograms(this.programs)
+            .build();
+
+        this.programs = [
+            new this.ProgramDataBuilder().build(),
+            new this.ProgramDataBuilder().build(),
+            new this.ProgramDataBuilder().build()
+        ];
+
+        this.orderable = new this.OrderableDataBuilder()
+            .withPrograms([
+                new this.ProgramOrderableDataBuilder()
+                    .withProgramId(this.programs[0].id)
+                    .buildJson(),
+                new this.ProgramOrderableDataBuilder()
+                    .withProgramId(this.programs[2].id)
+                    .buildJson()
+            ])
+            .withChildren(this.orderableChildren)
+            .build();
+
+        this.orderables = [
+            this.orderable,
+            new this.OrderableDataBuilder().build(),
+            new this.OrderableDataBuilder().build()
+        ];
+
+        this.orderablesPage = new this.PageDataBuilder()
+            .withContent(this.orderables)
+            .build();
+
+        this.reason1 =  new this.ReasonDataBuilder()
+            .build();
+        this.reason2 =  new this.ReasonDataBuilder()
+            .build();
+        this.reason3 =  new this.ReasonDataBuilder()
+            .build();
+
+        this.reasons = [
+            this.reason1,
+            this.reason2,
+            this.reason3
+        ];
+
+        spyOn(this.OrderableResource.prototype, 'query').andReturn(this.$q.resolve(this.orderablesPage));
+        spyOn(this.programService, 'getUserPrograms').andReturn(this.$q.when(this.programs));
+        spyOn(this.facilityFactory, 'getUserHomeFacility').andReturn(this.$q.resolve(this.homeFacility));
+        spyOn(this.stockReasonsFactory, 'getReasons').andReturn(this.$q.resolve(this.reasons));
+
+        spyOn(this.lotService, 'query').andReturn(this.$q.when(
+            new this.PageDataBuilder()
+                .withContent([
+                    new this.LotDataBuilder().withId('lot-1')
+                        .withTradeItemId('trade-item-2')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-2')
+                        .withTradeItemId('trade-item-2')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-3')
+                        .withTradeItemId('trade-item-2')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-4')
+                        .withTradeItemId('trade-item-3')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-5')
+                        .withTradeItemId('trade-item-3')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-6')
+                        .withTradeItemId('trade-item-4')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-7')
+                        .withTradeItemId('trade-item-6')
+                        .build(),
+                    new this.LotDataBuilder().withId('lot-8')
+                        .withTradeItemId('trade-item-6')
+                        .build()
+                ])
+                .build()
+        ));
     });
 
     describe('getOfflineEvents', function() {

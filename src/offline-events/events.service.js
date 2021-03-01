@@ -29,10 +29,10 @@
         .factory('eventsService', service);
 
     service.$inject = ['localStorageService', 'currentUserService', 'EVENT_TYPES', '$q',
-        'programService', 'FacilityResource', 'OrderableResource', 'lotService', 'stockReasonsFactory'];
+        'programService', 'facilityFactory', 'OrderableResource', 'lotService', 'stockReasonsFactory'];
 
     function service(localStorageService, currentUserService, EVENT_TYPES, $q,
-                     programService, FacilityResource, OrderableResource, lotService, stockReasonsFactory) {
+                     programService, facilityFactory, OrderableResource, lotService, stockReasonsFactory) {
 
         var STOCK_EVENTS = 'stockEvents';
 
@@ -53,7 +53,6 @@
          * @return {Promise} the Array of pending offline events
          */
         function getOfflineEvents() {
-            var facilityResource = new FacilityResource();
             var orderableResource = new OrderableResource();
 
             return currentUserService.getUserInfo()
@@ -91,31 +90,17 @@
                                 facilityId = item.destinationId;
                             }
 
-                            if (facilityId && facilityIds.indexOf(facilityId) === -1) {
-                                facilityIds.push(facilityId);
-                            }
-
-                            if (orderableIds.indexOf(item.orderableId) === -1) {
-                                orderableIds.push(item.orderableId);
-                            }
-
-                            if (item.lotId && lotIds.indexOf(item.lotId) === -1) {
-                                lotIds.push(item.lotId);
-                            }
-
-                            if (item.reasonId && reasonIds.indexOf(item.reasonId) === -1) {
-                                reasonIds.push(item.reasonId);
-                            }
+                            facilityIds = getIds(facilityId, facilityIds);
+                            orderableIds = getIds(item.orderableId, orderableIds);
+                            lotIds = getIds(item.lotId, lotIds);
+                            reasonIds = getIds(item.reasonId, reasonIds);
                         });
+
                     });
 
-                    console.log('facility ids: ', facilityIds);
-
                     return $q.all([
-                        programService.getAll(),
-                        facilityResource.query({
-                            id: facilityIds
-                        }),
+                        programService.getUserPrograms(user.id),
+                        facilityFactory.getUserHomeFacility(),
                         orderableResource.query({
                             id: orderableIds
                         }),
@@ -125,13 +110,12 @@
                         stockReasonsFactory.getReasons()
                     ]).then(function(responses) {
                         var programs = responses[0],
-                            facilities = responses[1].content,
+                            homeFacility = responses[1],
                             orderables = responses[2].content,
                             lots = responses[3].content,
                             reasons = responses[4];
-                        console.log('facilities: ', facilities);
 
-                        return combineResponses(userEvents, programs, facilities, orderables, lots, reasons);
+                        return combineResponses(userEvents, programs, homeFacility, orderables, lots, reasons);
                     });
                 });
         }
@@ -182,8 +166,6 @@
         function search(params) {
             return getOfflineEvents()
                 .then(function(events) {
-                    console.log('filter patrams: ', params);
-                    console.log('all events: ', events);
                     var filtredEvents = events.filter(function(event) {
                         var eventDate = event.lineItems[0].occurredDate;
 
@@ -202,37 +184,20 @@
                         return true;
                     });
 
-                    console.log('filtred events: ', filtredEvents);
                     return filtredEvents;
                 });
         }
 
-        function combineResponses(offlineEvents, programs, facilities, orderables, lots, reasons) {
-            var programsMap = programs.reduce(function(map, program) {
-                map[program.id] = program;
-                return map;
-            }, {});
-            var facilitiesMap = facilities.reduce(function(map, facility) {
-                map[facility.id] = facility;
-                return map;
-            }, {});
-            var orderablesMap = orderables.reduce(function(map, orderable) {
-                map[orderable.id] = orderable;
-                return map;
-            }, {});
-            var lotsMap = lots.reduce(function(map, lot) {
-                map[lot.id] = lot;
-                return map;
-            }, {});
-            var reasonsMap = reasons.reduce(function(map, reason) {
-                map[reason.id] = reason;
-                return map;
-            }, {});
+        function combineResponses(offlineEvents, programs, homeFacility, orderables, lots, reasons) {
+            var programsMap = prepareMap(programs),
+                orderablesMap = prepareMap(orderables),
+                lotsMap = prepareMap(lots),
+                reasonsMap = prepareMap(reasons);
 
             return offlineEvents.map(function(event, ind) {
                 event.ind = ind;
                 event.program = programsMap[event.programId];
-                event.facility = facilitiesMap[event.facilityId];
+                event.facility = homeFacility.id;
 
                 var lineItem = event.lineItems[0];
 
@@ -246,11 +211,11 @@
 
                 event.lineItems = event.lineItems.map(function(item) {
                     if (item.sourceId) {
-                        item.source = facilitiesMap[item.sourceId];
+                        //item.source = facilitiesMap[item.sourceId];
                     }
 
                     if (item.destinationId) {
-                        item.destination = facilitiesMap[item.destinationId];
+                        //item.destination = facilitiesMap[item.destinationId];
                     }
 
                     item.orderable = orderablesMap[item.orderableId];
@@ -262,6 +227,20 @@
 
                 return event;
             });
+        }
+
+        function getIds(id, idsList) {
+            if (id && idsList.indexOf(id) === -1) {
+                idsList.push(id);
+            }
+            return idsList;
+        }
+
+        function prepareMap(list) {
+            return list.reduce(function(map, listItem) {
+                map[listItem.id] = listItem;
+                return map;
+            }, {});
         }
 
     }
