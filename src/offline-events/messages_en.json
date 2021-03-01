@@ -1,0 +1,21 @@
+{
+    "offlineEvents.title": "Pending offline events",
+    "offlineEvents.pendingEvent": "Pending event",
+    "offlineEvents.details": "Details",
+    "offlineEvents.date": "Date",
+    "offlineEvents.actions": "Actions",
+    "offlineEvents.issue": "Issue",
+    "offlineEvents.receive": "Receive",
+    "offlineEvents.adjustment": "Adjustment",
+    "offlineEvents.from": "From",
+    "offlineEvents.to": "To",
+    "offlineEvents.search": "Search",
+    "offlineEvents.noEvents": "No offline events",
+    "offlineEvents.remove": "Remove",
+    "offlineEvents.stockManagement": "Stock Management",
+    "offlineEvents.noLots": "No lots",
+    "offlineEvents.receivedFrom": "Received from",
+    "offlineEvents.issueTo": "Issue to",
+    "offlineEvents.reason": "Reason",
+    "offlineEvents.quantity": "Quantity"
+}

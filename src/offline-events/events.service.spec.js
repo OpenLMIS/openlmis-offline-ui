@@ -74,7 +74,7 @@ describe('eventsService', function() {
 
     describe('getOfflineEvents', function() {
 
-        it('should get a count of offline events', function() {
+        it('should get a list of offline events', function() {
             localStorageService.get.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
@@ -89,7 +89,7 @@ describe('eventsService', function() {
             expect(eventsCount).toEqual(this.localStorageEvents.user_1);
         });
 
-        it('should get 0 if stock events in local storage are empty', function() {
+        it('should get empty list if stock events in local storage are empty', function() {
             localStorageService.get.andReturn(null);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
@@ -101,10 +101,10 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(eventsCount).toEqual(0);
+            expect(eventsCount).toEqual([]);
         });
 
-        it('should get 0 if stock events in local storage are empty for specific user', function() {
+        it('should get empty list if stock events in local storage are empty for specific user', function() {
             localStorageService.get.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
@@ -116,7 +116,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(eventsCount).toEqual(0);
+            expect(eventsCount).toEqual([]);
         });
     });
 });

@@ -1,0 +1,61 @@
+<h2 class="is-offline">
+    {{'offlineEvents.title' | message}}
+</h2>
+
+<div class="stock-adjustment-creation">
+    <section class="openlmis-table-container">
+        <form ng-submit="vm.search()">
+            <fieldset class="form-group">
+                <label for="event-type">{{'offlineEvents.pendingEvent' | message}}</label>
+                <select id="event-type"
+                        ng-model="vm.eventType"
+                        ng-options="type as (vm.getEventTypeLabel(type) |message) for type in vm.eventTypes">
+                </select>
+            </fieldset>
+            <fieldset class="form-group">
+                <label for="start-date">{{'offlineEvents.from' | message}}</label>
+                <input id="start-date" type="date" max-date="vm.endDate" ng-model="vm.startDate"/>
+            </fieldset>
+            <fieldset class="form-group">
+                <label for="end-date">{{'offlineEvents.to' | message}}</label>
+                <input id="end-date" type="date" min-date="vm.startDate" ng-model="vm.endDate"/>
+            </fieldset>
+
+            <input type="submit" value="{{'offlineEvents.search' | message}}"/>
+        </form>
+        <table suppress-tr-openlmis-invalid>
+            <caption ng-if="!vm.offlineEvents.length">{{'offlineEvents.noEvents' | message}}</caption>
+            <thead>
+            <tr>
+                <th>{{'offlineEvents.pendingEvent' | message}}</th>
+                <th>{{'offlineEvents.details' | message}}</th>
+                <th>{{'offlineEvents.date' | message}}</th>
+                <th>{{'offlineEvents.actions' | message}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="event in vm.events">
+                <td>{{vm.getEventTypeLabel(event.eventType) | message}} <i>({{'offlineEvents.stockManagement' | message}})</i></td>
+                <td>
+                    <p ng-repeat="item in event.lineItems">
+                        <span ng-if="EVENT_TYPES.ADJUSTMENT === event.eventType">{{event.facility.name}}; </span>
+                        <span>{{event.program.name}}; </span>
+                        <b>{{item.orderable.fullProductName}}; </b>
+                        <span ng-if="!item.lot">{{'offlineEvents.noLots' | message}}; </span>
+                        <span ng-if="item.lot">{{item.lot.lotCode}}; </span>
+                        <span ng-if="EVENT_TYPES.ISSUE === event.eventType"><b>{{'offlineEvents.issueTo' | message}}: </b>{{item.destination.name}}; </span>
+                        <span ng-if="EVENT_TYPES.RECEIVE === event.eventType"><b>{{'offlineEvents.receivedFrom' | message}}: </b>{{item.source.name}}; </span>
+                        <span ng-if="EVENT_TYPES.ADJUSTMENT === event.eventType"><b>{{'offlineEvents.reason' | message}}: </b>{{item.reason.name}}; </span>
+                        <span><b>{{'offlineEvents.quantity' | message}}: </b>{{item.quantity}}</span>
+                    </p>
+                </td>
+                <td>{{event.lineItems[0].occurredDate | openlmisDate}}</td>
+                <td>
+                    <button type="button" class="danger" ng-click="vm.remove(event)">{{'offlineEvents.remove' | message}}</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <openlmis-pagination list="vm.offlineEvents" paged-list="vm.events"/>
+    </section>
+</div>

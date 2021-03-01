@@ -24,6 +24,12 @@
      * Provides pending offline events
      */
     angular.module('offline-events', [
+        'openlmis-local-storage',
+        'referencedata-orderable',
+        'referencedata-facility',
+        'referencedata-program',
+        'referencedata-lot',
+        'stock-reason'
     ]);
 
 })();
