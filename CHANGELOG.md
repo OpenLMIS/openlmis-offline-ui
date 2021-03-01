@@ -2,4 +2,4 @@
 ==================
 
 New functionality that are backwards-compatible:
-* 
+* [OLMIS-7209](https://openlmis.atlassian.net/browse/OLMIS-7209): Added pending offline events service decorator which retrieves events from local storage.
