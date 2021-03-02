@@ -38,10 +38,29 @@
         var STOCK_EVENTS = 'stockEvents';
 
         return {
+            getUserEventsFromStorage: getUserEventsFromStorage,
             getOfflineEvents: getOfflineEvents,
             removeOfflineEvent: removeOfflineEvent,
             search: search
         };
+
+        /**
+         * @ngdoc method
+         * @methodOf offline-events.eventsService
+         * @name getUserEventsFromStorage
+         *
+         * @description
+         * Retrieves pending offline events from cache
+         *
+         * @return {Promise} the Array of events created offline by current user
+         */
+        function getUserEventsFromStorage() {
+            return currentUserService.getUserInfo()
+                .then(function(user) {
+                    var offlineEvents = localStorageService.get(STOCK_EVENTS);
+                    return offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [];
+                });
+        }
 
         /**
          * @ngdoc method
@@ -56,11 +75,9 @@
         function getOfflineEvents() {
             var orderableResource = new OrderableResource();
 
-            return currentUserService.getUserInfo()
-                .then(function(user) {
-                    var offlineEvents = localStorageService.get(STOCK_EVENTS),
-                        userEvents = offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [],
-                        homeFacility,
+            return getUserEventsFromStorage()
+                .then(function(userEvents) {
+                    var homeFacility,
                         programs = [],
                         sources = [],
                         destinations = [],
@@ -68,10 +85,6 @@
                         orderableIds = [],
                         lotIds = [],
                         promises = [];
-
-                    if (!offlineEvents) {
-                        return [];
-                    }
 
                     if (!userEvents) {
                         return [];
@@ -221,7 +234,7 @@
                 });
         }
 
-        function combineResponses(offlineEvents, programs, homeFacility, orderables, lots, reasons,
+        function combineResponses(userEvents, programs, homeFacility, orderables, lots, reasons,
                                   validAssignmentsList) {
             var programsMap = prepareMap(programs),
                 orderablesMap = prepareMap(orderables),
@@ -232,10 +245,10 @@
                     return map;
                 }, {});
 
-            return offlineEvents.map(function(event, ind) {
+            return userEvents.map(function(event, ind) {
                 event.ind = ind;
                 event.program = programsMap[event.programId];
-                event.facility = homeFacility.id;
+                event.facility = homeFacility;
 
                 var lineItem = event.lineItems[0];
 

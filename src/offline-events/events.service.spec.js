@@ -152,6 +152,14 @@ describe('eventsService', function() {
                     occurredDate: '2017-01-01',
                     sourceId: 'node-id-1'
                 }]
+            },
+            {
+                facilityId: this.homeFacility.id,
+                programId: this.programs[0].id,
+                lineItems: [{
+                    orderableId: this.orderables[0],
+                    occurredDate: '2017-01-01'
+                }]
             }
         ];
         this.localStorageEvents['user_2'] = [
@@ -250,6 +258,25 @@ describe('eventsService', function() {
             expect(localStorageService.get).toHaveBeenCalled();
             expect(eventsCount).toEqual([]);
         });
+
+        it('should prepare proper event object to display', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var events;
+            this.eventsService.getOfflineEvents().then(function(result) {
+                events = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(events).toEqual(this.localStorageEvents.user_1);
+            expect(this.localStorageEvents.user_1[2].facility).toEqual(this.homeFacility);
+            expect(this.localStorageEvents.user_1[2].eventType).toEqual(this.EVENT_TYPES.ADJUSTMENT);
+            expect(this.localStorageEvents.user_1[2].programId).toEqual(this.programs[0].id);
+        });
+
     });
 
     describe('removeOfflineEvent', function() {
@@ -263,7 +290,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(this.localStorageEvents.user_1.length).toEqual(1);
+            expect(this.localStorageEvents.user_1.length).toEqual(2);
         });
 
         it('should do nothing when no offline events', function() {
