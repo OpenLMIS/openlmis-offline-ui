@@ -24,7 +24,7 @@ describe('eventsService', function() {
                 return currentUserService;
             });
 
-            localStorageService = jasmine.createSpyObj('localStorageService', ['get']);
+            localStorageService = jasmine.createSpyObj('localStorageService', ['get', 'add']);
             $provide.service('localStorageService', function() {
                 return localStorageService;
             });
@@ -243,5 +243,45 @@ describe('eventsService', function() {
             expect(localStorageService.get).toHaveBeenCalled();
             expect(eventsCount).toEqual([]);
         });
+    });
+
+    describe('removeOfflineEvent', function() {
+
+        it('should remove given event from the local storage', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(this.localStorageEvents.user_1.length).toEqual(1);
+        });
+
+        it('should do nothing when no offline events', function() {
+            localStorageService.get.andReturn(null);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(localStorageService.add).not.toHaveBeenCalled();
+        });
+
+        it('should do nothing when no offline events for a given user', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
+
+            this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(localStorageService.add).not.toHaveBeenCalled();
+        });
+
     });
 });
