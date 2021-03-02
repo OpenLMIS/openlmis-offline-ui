@@ -272,9 +272,9 @@ describe('eventsService', function() {
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
             expect(events).toEqual(this.localStorageEvents.user_1);
-            expect(this.localStorageEvents.user_1[2].facility).toEqual(this.homeFacility);
-            expect(this.localStorageEvents.user_1[2].eventType).toEqual(this.EVENT_TYPES.ADJUSTMENT);
-            expect(this.localStorageEvents.user_1[2].programId).toEqual(this.programs[0].id);
+            expect(events[2].facility).toEqual(this.homeFacility);
+            expect(events[2].eventType).toEqual(this.EVENT_TYPES.ADJUSTMENT);
+            expect(events[2].program).toEqual(this.programs[0]);
         });
 
     });
