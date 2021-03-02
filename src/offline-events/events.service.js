@@ -29,10 +29,11 @@
         .factory('eventsService', service);
 
     service.$inject = ['localStorageService', 'currentUserService', 'EVENT_TYPES', '$q',
-        'programService', 'facilityFactory', 'OrderableResource', 'lotService', 'stockReasonsFactory'];
+        'facilityFactory', 'OrderableResource', 'lotService', 'stockReasonsFactory',
+        'sourceDestinationService'];
 
-    function service(localStorageService, currentUserService, EVENT_TYPES, $q,
-                     programService, facilityFactory, OrderableResource, lotService, stockReasonsFactory) {
+    function service(localStorageService, currentUserService, EVENT_TYPES, $q, facilityFactory,
+                     OrderableResource, lotService, stockReasonsFactory, sourceDestinationService) {
 
         var STOCK_EVENTS = 'stockEvents';
 
@@ -57,65 +58,97 @@
 
             return currentUserService.getUserInfo()
                 .then(function(user) {
-                    var offlineEvents = localStorageService.get(STOCK_EVENTS);
+                    var offlineEvents = localStorageService.get(STOCK_EVENTS),
+                        userEvents = offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [],
+                        homeFacility,
+                        programs = [],
+                        sources = [],
+                        destinations = [],
+                        validAssignmentsList = [],
+                        orderableIds = [],
+                        lotIds = [],
+                        promises = [];
 
                     if (!offlineEvents) {
                         return [];
                     }
 
-                    var userEvents = angular.fromJson(offlineEvents)[user.id];
-
                     if (!userEvents) {
                         return [];
                     }
 
-                    var facilityIds = [];
-                    var orderableIds = [];
-                    var lotIds = [];
-                    var reasonIds = [];
+                    return facilityFactory.getUserHomeFacility().then(function(facility) {
+                        homeFacility = facility;
+                        programs = homeFacility.supportedPrograms;
 
-                    userEvents.forEach(function(event) {
-                        if (facilityIds.indexOf(event.facilityId) === -1) {
-                            facilityIds.push(event.facilityId);
-                        }
-
-                        event.lineItems.forEach(function(item) {
-                            var facilityId = null;
-
-                            if (item.sourceId) {
-                                facilityId = item.sourceId;
-                            }
-
-                            if (item.destinationId) {
-                                facilityId = item.destinationId;
-                            }
-
-                            facilityIds = getIds(facilityId, facilityIds);
-                            orderableIds = getIds(item.orderableId, orderableIds);
-                            lotIds = getIds(item.lotId, lotIds);
-                            reasonIds = getIds(item.reasonId, reasonIds);
+                        programs.forEach(function(program) {
+                            promises.push(sourceDestinationService.getSourceAssignments(
+                                program.id ? program.id : program,
+                                homeFacility.id ? homeFacility.id : homeFacility
+                            ));
+                            promises.push(sourceDestinationService.getDestinationAssignments(
+                                program.id ? program.id : program,
+                                homeFacility.id ? homeFacility.id : homeFacility
+                            ));
                         });
 
-                    });
+                        return $q.all(promises).then(function(responses) {
+                            sources = responses[0];
+                            destinations = responses[1];
 
-                    return $q.all([
-                        programService.getUserPrograms(user.id),
-                        facilityFactory.getUserHomeFacility(),
-                        orderableResource.query({
-                            id: orderableIds
-                        }),
-                        lotService.query({
-                            id: lotIds
-                        }),
-                        stockReasonsFactory.getReasons()
-                    ]).then(function(responses) {
-                        var programs = responses[0],
-                            homeFacility = responses[1],
-                            orderables = responses[2].content,
-                            lots = responses[3].content,
-                            reasons = responses[4];
+                            userEvents.forEach(function(event) {
+                                event.lineItems.forEach(function(item) {
 
-                        return combineResponses(userEvents, programs, homeFacility, orderables, lots, reasons);
+                                    if (item.sourceId) {
+                                        sources.forEach(function(source) {
+                                            if (source.node.id === item.sourceId) {
+                                                validAssignmentsList.push(source);
+                                            }
+                                        });
+                                    }
+
+                                    if (item.destinationId) {
+                                        destinations.forEach(function(destination) {
+                                            if (destination.node.id === item.destinationId) {
+                                                validAssignmentsList.push(destination);
+                                            }
+                                        });
+                                    }
+
+                                    orderableIds = getIds(item.orderableId, orderableIds);
+                                    lotIds = getIds(item.lotId, lotIds);
+                                });
+                            });
+
+                            return $q.resolve({
+                                orderableIds: orderableIds,
+                                lotIds: lotIds,
+                                validAssignmentsList: validAssignmentsList,
+                                userEvents: userEvents
+                            });
+                        })
+                            .then(function(result) {
+                                return $q.all([
+                                    orderableResource.query({
+                                        id: result.orderableIds
+                                    }),
+                                    lotService.query({
+                                        id: result.lotIds
+                                    }),
+                                    stockReasonsFactory.getReasons(),
+                                    result.validAssignmentsList,
+                                    result.userEvents
+                                ]).then(function(responses) {
+                                    var orderables = responses[0].content,
+                                        lots = responses[1].content,
+                                        reasons = responses[2],
+                                        validAssignmentsList = responses[3],
+                                        userEvents = responses[4];
+
+                                    return combineResponses(userEvents, programs, homeFacility, orderables,
+                                        lots, reasons, validAssignmentsList);
+                                });
+                            });
                     });
                 });
         }
@@ -188,11 +221,16 @@
                 });
         }
 
-        function combineResponses(offlineEvents, programs, homeFacility, orderables, lots, reasons) {
+        function combineResponses(offlineEvents, programs, homeFacility, orderables, lots, reasons,
+                                  validAssignmentsList) {
             var programsMap = prepareMap(programs),
                 orderablesMap = prepareMap(orderables),
                 lotsMap = prepareMap(lots),
-                reasonsMap = prepareMap(reasons);
+                reasonsMap = prepareMap(reasons),
+                validAssignmentsMap = validAssignmentsList.reduce(function(map, assignment) {
+                    map[assignment.node.id] = assignment;
+                    return map;
+                }, {});
 
             return offlineEvents.map(function(event, ind) {
                 event.ind = ind;
@@ -211,11 +249,11 @@
 
                 event.lineItems = event.lineItems.map(function(item) {
                     if (item.sourceId) {
-                        //item.source = facilitiesMap[item.sourceId];
+                        item.source = validAssignmentsMap[item.sourceId];
                     }
 
                     if (item.destinationId) {
-                        //item.destination = facilitiesMap[item.destinationId];
+                        item.destination = validAssignmentsMap[item.destinationId];
                     }
 
                     item.orderable = orderablesMap[item.orderableId];

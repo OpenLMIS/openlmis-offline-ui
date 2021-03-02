@@ -76,11 +76,11 @@
          * @return {Array} the list of available event types
          */
         function getEventTypes() {
-            return [
-                EVENT_TYPES.ISSUE,
-                EVENT_TYPES.RECEIVE,
-                EVENT_TYPES.ADJUSTMENT
-            ];
+            return {
+                ISSUE: EVENT_TYPES.ISSUE,
+                RECEIVE: EVENT_TYPES.RECEIVE,
+                ADJUSTMENT: EVENT_TYPES.ADJUSTMENT
+            };
         }
     }
 

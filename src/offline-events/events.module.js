@@ -30,7 +30,8 @@
         'referencedata-program',
         'referencedata-lot',
         'stock-adjustment-creation',
-        'stock-reason'
+        'stock-reason',
+        'stock-valid-destinations'
     ]);
 
 })();

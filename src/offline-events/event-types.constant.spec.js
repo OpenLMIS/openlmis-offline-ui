@@ -55,12 +55,12 @@ describe('EVENT_TYPES', function() {
 
     describe('EVENT_TYPES', function() {
 
-        it('should return a list of event types', function() {
-            expect(this.EVENT_TYPES.getEventTypes()).toEqual([
-                'ISSUE',
-                'RECEIVE',
-                'ADJUSTMENT'
-            ]);
+        it('should return a map of event types', function() {
+            expect(this.EVENT_TYPES.getEventTypes()).toEqual({
+                ISSUE: this.EVENT_TYPES.ISSUE,
+                RECEIVE: this.EVENT_TYPES.RECEIVE,
+                ADJUSTMENT: this.EVENT_TYPES.ADJUSTMENT
+            });
         });
 
     });

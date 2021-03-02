@@ -47,6 +47,7 @@ describe('eventsService', function() {
             this.OrderableDataBuilder = $injector.get('OrderableDataBuilder');
             this.ProgramOrderableDataBuilder = $injector.get('ProgramOrderableDataBuilder');
             this.ReasonDataBuilder = $injector.get('ReasonDataBuilder');
+            this.sourceDestinationService = $injector.get('sourceDestinationService');
         });
 
         this.localStorageEvents = {};
@@ -137,10 +138,32 @@ describe('eventsService', function() {
             this.reason3
         ];
 
+        this.validSources = [
+            {
+                facilityTypeId: 'fac-type-id-1',
+                id: 'source-id-1',
+                name: 'source one',
+                programId: 'program-id-1',
+                facilityId: this.homeFacilityId
+            }
+        ];
+
+        this.validDestinations = [
+            {
+                facilityTypeId: 'fac-type-id-1',
+                id: 'dest-id-1',
+                name: 'destination one',
+                programId: 'program-id-1',
+                facilityId: this.homeFacilityId
+            }
+        ];
+
         spyOn(this.OrderableResource.prototype, 'query').andReturn(this.$q.resolve(this.orderablesPage));
-        spyOn(this.programService, 'getUserPrograms').andReturn(this.$q.when(this.programs));
         spyOn(this.facilityFactory, 'getUserHomeFacility').andReturn(this.$q.resolve(this.homeFacility));
         spyOn(this.stockReasonsFactory, 'getReasons').andReturn(this.$q.resolve(this.reasons));
+        spyOn(this.sourceDestinationService, 'getSourceAssignments').andReturn(this.$q.resolve(this.validSources));
+        spyOn(this.sourceDestinationService, 'getDestinationAssignments')
+            .andReturn(this.$q.resolve(this.validDestinations));
 
         spyOn(this.lotService, 'query').andReturn(this.$q.when(
             new this.PageDataBuilder()

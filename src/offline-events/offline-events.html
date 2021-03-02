@@ -38,14 +38,14 @@
                 <td>{{vm.getEventTypeLabel(event.eventType) | message}} <i>({{'offlineEvents.stockManagement' | message}})</i></td>
                 <td>
                     <p ng-repeat="item in event.lineItems">
-                        <span ng-if="EVENT_TYPES.ADJUSTMENT === event.eventType">{{event.facility.name}}; </span>
+                        <span ng-if="vm.eventTypes['ADJUSTMENT'] === event.eventType">{{event.facility.name}}; </span>
                         <span>{{event.program.name}}; </span>
                         <b>{{item.orderable.fullProductName}}; </b>
                         <span ng-if="!item.lot">{{'offlineEvents.noLots' | message}}; </span>
                         <span ng-if="item.lot">{{item.lot.lotCode}}; </span>
-                        <span ng-if="EVENT_TYPES.ISSUE === event.eventType"><b>{{'offlineEvents.issueTo' | message}}: </b>{{item.destination.name}}; </span>
-                        <span ng-if="EVENT_TYPES.RECEIVE === event.eventType"><b>{{'offlineEvents.receivedFrom' | message}}: </b>{{item.source.name}}; </span>
-                        <span ng-if="EVENT_TYPES.ADJUSTMENT === event.eventType"><b>{{'offlineEvents.reason' | message}}: </b>{{item.reason.name}}; </span>
+                        <span ng-if="vm.eventTypes['ISSUE'] === event.eventType"><b>{{'offlineEvents.issueTo' | message}}: </b>{{item.destination.name}}; </span>
+                        <span ng-if="vm.eventTypes['RECEIVE'] === event.eventType"><b>{{'offlineEvents.receivedFrom' | message}}: </b>{{item.source.name}}; </span>
+                        <span ng-if="vm.eventTypes['ADJUSTMENT'] === event.eventType"><b>{{'offlineEvents.reason' | message}}: </b>{{item.reason.name}}; </span>
                         <span><b>{{'offlineEvents.quantity' | message}}: </b>{{item.quantity}}</span>
                     </p>
                 </td>
