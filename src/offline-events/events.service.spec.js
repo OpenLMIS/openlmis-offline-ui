@@ -44,38 +44,13 @@ describe('eventsService', function() {
             this.PageDataBuilder = $injector.get('PageDataBuilder');
             this.ProgramDataBuilder = $injector.get('ProgramDataBuilder');
             this.FacilityDataBuilder = $injector.get('FacilityDataBuilder');
+            this.FacilityTypeDataBuilder = $injector.get('FacilityTypeDataBuilder');
             this.OrderableDataBuilder = $injector.get('OrderableDataBuilder');
             this.ProgramOrderableDataBuilder = $injector.get('ProgramOrderableDataBuilder');
             this.ReasonDataBuilder = $injector.get('ReasonDataBuilder');
             this.sourceDestinationService = $injector.get('sourceDestinationService');
+            this.EVENT_TYPES = $injector.get('EVENT_TYPES');
         });
-
-        this.localStorageEvents = {};
-        this.localStorageEvents['user_1'] = [
-            {
-                facilityId: 'facility_1',
-                programId: 'program_1',
-                lineItems: [{
-                    orderableId: 'orderable_1'
-                }]
-            },
-            {
-                facilityId: 'facility_1',
-                programId: 'program_2',
-                lineItems: [{
-                    orderableId: 'orderable_3'
-                }]
-            }
-        ];
-        this.localStorageEvents['user_2'] = [
-            {
-                facilityId: 'facility_1',
-                programId: 'program_3',
-                lineItems: [{
-                    orderableId: 'orderable_5'
-                }]
-            }
-        ];
 
         this.user1 = {
             id: 'user_1'
@@ -85,23 +60,17 @@ describe('eventsService', function() {
             id: 'user_3'
         };
 
-        this.program1 = new this.ProgramDataBuilder().build();
-        this.program2 = new this.ProgramDataBuilder().build();
-
         this.programs = [
-            this.program1,
-            this.program2
-        ];
-
-        this.homeFacility = new this.FacilityDataBuilder()
-            .withSupportedPrograms(this.programs)
-            .build();
-
-        this.programs = [
-            new this.ProgramDataBuilder().build(),
             new this.ProgramDataBuilder().build(),
             new this.ProgramDataBuilder().build()
         ];
+
+        this.facilityType = new this.FacilityTypeDataBuilder().build();
+
+        this.homeFacility = new this.FacilityDataBuilder()
+            .withSupportedPrograms(this.programs)
+            .withFacilityType(this.facilityType)
+            .build();
 
         this.orderable = new this.OrderableDataBuilder()
             .withPrograms([
@@ -109,7 +78,7 @@ describe('eventsService', function() {
                     .withProgramId(this.programs[0].id)
                     .buildJson(),
                 new this.ProgramOrderableDataBuilder()
-                    .withProgramId(this.programs[2].id)
+                    .withProgramId(this.programs[1].id)
                     .buildJson()
             ])
             .withChildren(this.orderableChildren)
@@ -140,21 +109,59 @@ describe('eventsService', function() {
 
         this.validSources = [
             {
-                facilityTypeId: 'fac-type-id-1',
+                facilityTypeId: this.facilityType.id,
                 id: 'source-id-1',
                 name: 'source one',
-                programId: 'program-id-1',
-                facilityId: this.homeFacilityId
+                programId: this.programs[0].id,
+                facilityId: this.homeFacilityId,
+                node: {
+                    id: 'node-id-1'
+                }
             }
         ];
 
         this.validDestinations = [
             {
-                facilityTypeId: 'fac-type-id-1',
+                facilityTypeId: this.facilityType.id,
                 id: 'dest-id-1',
                 name: 'destination one',
-                programId: 'program-id-1',
-                facilityId: this.homeFacilityId
+                programId: this.programs[0].id,
+                facilityId: this.homeFacilityId,
+                node: {
+                    id: 'node-id-2'
+                }
+            }
+        ];
+
+        this.localStorageEvents = {};
+        this.localStorageEvents['user_1'] = [
+            {
+                facilityId: this.homeFacility.id,
+                programId: this.programs[1].id,
+                lineItems: [{
+                    orderableId: this.orderables[0],
+                    occurredDate: '2018-02-01',
+                    destinationId: 'node-id-1'
+                }]
+            },
+            {
+                facilityId: this.homeFacility.id,
+                programId: this.programs[0].id,
+                lineItems: [{
+                    orderableId: this.orderables[1],
+                    occurredDate: '2017-01-01',
+                    sourceId: 'node-id-1'
+                }]
+            }
+        ];
+        this.localStorageEvents['user_2'] = [
+            {
+                facilityId: this.homeFacility.id,
+                programId: this.programs[0].id,
+                lineItems: [{
+                    orderableId: this.orderables[0],
+                    occurredDate: '2017-01-01'
+                }]
             }
         ];
 
@@ -281,6 +288,88 @@ describe('eventsService', function() {
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
             expect(localStorageService.add).not.toHaveBeenCalled();
+        });
+
+    });
+
+    describe('search', function() {
+
+        it('should return events filtered by startDate param', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var params = {
+                startDate: '2017-02-01'
+            };
+
+            var filtered;
+            this.eventsService.search(params).then(function(result) {
+                filtered = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(filtered).toEqual([this.localStorageEvents.user_1[0]]);
+        });
+
+        it('should return events filtered by endDate param', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var params = {
+                endDate: '2020-02-01'
+            };
+
+            var filtered;
+            this.eventsService.search(params).then(function(result) {
+                filtered = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(filtered).toEqual(this.localStorageEvents.user_1);
+        });
+
+        it('should return events filtered by eventType param', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var params = {
+                eventType: this.EVENT_TYPES.RECEIVE
+            };
+
+            var filtered;
+            this.eventsService.search(params).then(function(result) {
+                filtered = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(filtered).toEqual([this.localStorageEvents.user_1[1]]);
+        });
+
+        it('should return events filtered by all params', function() {
+            localStorageService.get.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var params = {
+                startDate: '2017-02-01',
+                endDate: '2020-02-01',
+                eventType: this.EVENT_TYPES.ISSUE
+            };
+
+            var filtered;
+            this.eventsService.search(params).then(function(result) {
+                filtered = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(localStorageService.get).toHaveBeenCalled();
+            expect(filtered).toEqual([this.localStorageEvents.user_1[0]]);
         });
 
     });
