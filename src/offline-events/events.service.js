@@ -69,6 +69,7 @@
          *
          * @description
          * Retrieves pending offline events for the current user
+         * and combines them with all necessary data
          *
          * @return {Promise} the Array of pending offline events
          */
@@ -93,17 +94,7 @@
                     return facilityFactory.getUserHomeFacility().then(function(facility) {
                         homeFacility = facility;
                         programs = homeFacility.supportedPrograms;
-
-                        programs.forEach(function(program) {
-                            promises.push(sourceDestinationService.getSourceAssignments(
-                                program.id ? program.id : program,
-                                homeFacility.id ? homeFacility.id : homeFacility
-                            ));
-                            promises.push(sourceDestinationService.getDestinationAssignments(
-                                program.id ? program.id : program,
-                                homeFacility.id ? homeFacility.id : homeFacility
-                            ));
-                        });
+                        promises = getSourceDestinationPromises(programs, homeFacility, promises);
 
                         return $q.all(promises).then(function(responses) {
                             sources = responses[0];
@@ -112,21 +103,9 @@
                             userEvents.forEach(function(event) {
                                 event.lineItems.forEach(function(item) {
 
-                                    if (item.sourceId) {
-                                        sources.forEach(function(source) {
-                                            if (source.node.id === item.sourceId) {
-                                                validAssignmentsList.push(source);
-                                            }
-                                        });
-                                    }
-
-                                    if (item.destinationId) {
-                                        destinations.forEach(function(destination) {
-                                            if (destination.node.id === item.destinationId) {
-                                                validAssignmentsList.push(destination);
-                                            }
-                                        });
-                                    }
+                                    validAssignmentsList = getValidAssignments(
+                                        item, sources, destinations, validAssignmentsList
+                                    );
 
                                     orderableIds = getIds(item.orderableId, orderableIds);
                                     lotIds = getIds(item.lotId, lotIds);
@@ -252,13 +231,7 @@
 
                 var lineItem = event.lineItems[0];
 
-                if (lineItem.sourceId) {
-                    event.eventType = EVENT_TYPES.RECEIVE;
-                } else if (lineItem.destinationId) {
-                    event.eventType = EVENT_TYPES.ISSUE;
-                } else {
-                    event.eventType = EVENT_TYPES.ADJUSTMENT;
-                }
+                event.eventType = adjustEventType(lineItem, event);
 
                 event.lineItems = event.lineItems.map(function(item) {
                     if (item.sourceId) {
@@ -292,6 +265,50 @@
                 map[listItem.id] = listItem;
                 return map;
             }, {});
+        }
+
+        function getSourceDestinationPromises(programs, facility, promises) {
+            programs.forEach(function(program) {
+                promises.push(sourceDestinationService.getSourceAssignments(
+                    program.id ? program.id : program,
+                    facility.id ? facility.id : facility
+                ));
+                promises.push(sourceDestinationService.getDestinationAssignments(
+                    program.id ? program.id : program,
+                    facility.id ? facility.id : facility
+                ));
+            });
+
+            return promises;
+        }
+
+        function getValidAssignments(lineItem, sources, destinations, validAssignmentsList) {
+            if (lineItem.sourceId) {
+                sources.forEach(function(source) {
+                    if (source.node.id === lineItem.sourceId) {
+                        validAssignmentsList.push(source);
+                    }
+                });
+            }
+
+            if (lineItem.destinationId) {
+                destinations.forEach(function(destination) {
+                    if (destination.node.id === lineItem.destinationId) {
+                        validAssignmentsList.push(destination);
+                    }
+                });
+            }
+
+            return validAssignmentsList;
+        }
+
+        function adjustEventType(lineItem) {
+            if (lineItem.sourceId) {
+                return EVENT_TYPES.RECEIVE;
+            } else if (lineItem.destinationId) {
+                return EVENT_TYPES.ISSUE;
+            }
+            return EVENT_TYPES.ADJUSTMENT;
         }
 
     }
