@@ -54,7 +54,7 @@
          * @return {Promise} the number of pending offline events
          */
         function getCountOfOfflineEvents() {
-            return eventsService.getOfflineEvents()
+            return eventsService.getUserEventsFromStorage()
                 .then(function(result) {
                     return result.length;
                 });
