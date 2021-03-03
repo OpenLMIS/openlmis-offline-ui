@@ -231,7 +231,7 @@
 
                 var lineItem = event.lineItems[0];
 
-                event.eventType = adjustEventType(lineItem, event);
+                event.eventType = adjustEventType(lineItem);
 
                 event.lineItems = event.lineItems.map(function(item) {
                     if (item.sourceId) {
