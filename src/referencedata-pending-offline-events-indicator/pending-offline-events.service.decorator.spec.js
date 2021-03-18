@@ -19,7 +19,7 @@ describe('Pending Offline Events Service Decorator', function() {
 
     beforeEach(function() {
         module('referencedata-pending-offline-events-indicator', function($provide) {
-            eventsService = jasmine.createSpyObj('eventsService', ['getUserEventsFromStorage']);
+            eventsService = jasmine.createSpyObj('eventsService', ['getUserPendingEventsFromStorage']);
             $provide.service('eventsService', function() {
                 return eventsService;
             });
@@ -52,7 +52,7 @@ describe('Pending Offline Events Service Decorator', function() {
 
     describe('getCountOfOfflineEvents', function() {
         it('should get count of offline events', function() {
-            eventsService.getUserEventsFromStorage.andReturn(this.$q.resolve(this.localStorageEvents));
+            eventsService.getUserPendingEventsFromStorage.andReturn(this.$q.resolve(this.localStorageEvents));
 
             var eventsCount;
             this.pendingOfflineEventsService.getCountOfOfflineEvents().then(function(result) {
@@ -64,7 +64,7 @@ describe('Pending Offline Events Service Decorator', function() {
         });
 
         it('should get 0 if there are no offline events', function() {
-            eventsService.getUserEventsFromStorage.andReturn(this.$q.resolve([]));
+            eventsService.getUserPendingEventsFromStorage.andReturn(this.$q.resolve([]));
 
             var eventsCount;
             this.pendingOfflineEventsService.getCountOfOfflineEvents().then(function(result) {

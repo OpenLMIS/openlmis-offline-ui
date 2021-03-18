@@ -38,7 +38,7 @@
         var STOCK_EVENTS = 'stockEvents';
 
         return {
-            getUserEventsFromStorage: getUserEventsFromStorage,
+            getUserPendingEventsFromStorage: getUserPendingEventsFromStorage,
             getOfflineEvents: getOfflineEvents,
             removeOfflineEvent: removeOfflineEvent,
             search: search
@@ -47,19 +47,22 @@
         /**
          * @ngdoc method
          * @methodOf offline-events.eventsService
-         * @name getUserEventsFromStorage
+         * @name getUserPendingEventsFromStorage
          *
          * @description
-         * Retrieves pending offline events from cache
+         * Retrieves pending offline events from cache that have not been synchronized
          *
          * @return {Promise} the Array of events created offline by current user
          */
-        function getUserEventsFromStorage() {
-            return currentUserService.getUserInfo()
-                .then(function(user) {
-                    var offlineEvents = localStorageService.get(STOCK_EVENTS);
-                    return offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [];
+        function getUserPendingEventsFromStorage() {
+            return getAllUserEventsFromStorage().then(function(events) {
+                if (!events) {
+                    return [];
+                }
+                return events.filter(function(event) {
+                    return !event.sent && !event.error;
                 });
+            });
         }
 
         /**
@@ -76,7 +79,7 @@
         function getOfflineEvents() {
             var orderableResource = new OrderableResource();
 
-            return getUserEventsFromStorage()
+            return getUserPendingEventsFromStorage()
                 .then(function(userEvents) {
                     var homeFacility,
                         programs = [],
@@ -210,6 +213,14 @@
                     });
 
                     return filtredEvents;
+                });
+        }
+
+        function getAllUserEventsFromStorage() {
+            return currentUserService.getUserInfo()
+                .then(function(user) {
+                    var offlineEvents = localStorageService.get(STOCK_EVENTS);
+                    return offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [];
                 });
         }
 

@@ -160,8 +160,26 @@ describe('eventsService', function() {
                     orderableId: this.orderables[0],
                     occurredDate: '2017-01-01'
                 }]
+            },
+            {
+                facilityId: this.homeFacility.id,
+                programId: this.programs[0].id,
+                lineItems: [{
+                    orderableId: this.orderables[0],
+                    occurredDate: '2017-01-01'
+                }],
+                sent: true,
+                error: {
+                    status: 'status_1',
+                    data: 'message'
+                }
             }
         ];
+
+        this.filteredEvents = this.localStorageEvents.user_1.filter(function(event) {
+            return !event.sent && !event.error;
+        });
+
         this.localStorageEvents['user_2'] = [
             {
                 facilityId: this.homeFacility.id,
@@ -226,7 +244,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(eventsCount).toEqual(this.localStorageEvents.user_1);
+            expect(eventsCount).toEqual(this.filteredEvents);
         });
 
         it('should get empty list if stock events in local storage are empty', function() {
@@ -271,7 +289,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(events).toEqual(this.localStorageEvents.user_1);
+            expect(events).toEqual(this.filteredEvents);
             expect(events[2].facility).toEqual(this.homeFacility);
             expect(events[2].eventType).toEqual(this.EVENT_TYPES.ADJUSTMENT);
             expect(events[2].program).toEqual(this.programs[0]);
@@ -290,7 +308,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(this.localStorageEvents.user_1.length).toEqual(2);
+            expect(this.localStorageEvents.user_1.length).toEqual(3);
         });
 
         it('should do nothing when no offline events', function() {
@@ -356,7 +374,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(filtered).toEqual(this.localStorageEvents.user_1);
+            expect(filtered).toEqual(this.filteredEvents);
         });
 
         it('should return events filtered by eventType param', function() {
