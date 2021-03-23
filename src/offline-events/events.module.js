@@ -31,7 +31,8 @@
         'referencedata-lot',
         'stock-adjustment-creation',
         'stock-reason',
-        'stock-valid-destinations'
+        'stock-valid-destinations',
+        'stock-event'
     ]);
 
 })();

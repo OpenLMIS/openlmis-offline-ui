@@ -15,7 +15,7 @@
 
 describe('eventsService', function() {
 
-    var currentUserService, localStorageService;
+    var currentUserService, localStorageService, stockEventCacheService;
 
     beforeEach(function() {
         module('offline-events', function($provide) {
@@ -27,6 +27,13 @@ describe('eventsService', function() {
             localStorageService = jasmine.createSpyObj('localStorageService', ['get', 'add']);
             $provide.service('localStorageService', function() {
                 return localStorageService;
+            });
+            stockEventCacheService = jasmine.createSpyObj('stockEventCacheService', [
+                'getStockEvents', 'getStockEventsSynchronizationErrors',
+                'cacheStockEvents', 'cacheStockEventSynchronizationError'
+            ]);
+            $provide.service('stockEventCacheService', function() {
+                return stockEventCacheService;
             });
         });
 
@@ -160,25 +167,8 @@ describe('eventsService', function() {
                     orderableId: this.orderables[0],
                     occurredDate: '2017-01-01'
                 }]
-            },
-            {
-                facilityId: this.homeFacility.id,
-                programId: this.programs[0].id,
-                lineItems: [{
-                    orderableId: this.orderables[0],
-                    occurredDate: '2017-01-01'
-                }],
-                sent: true,
-                error: {
-                    status: 'status_1',
-                    data: 'message'
-                }
             }
         ];
-
-        this.filteredEvents = this.localStorageEvents.user_1.filter(function(event) {
-            return !event.sent && !event.error;
-        });
 
         this.localStorageEvents['user_2'] = [
             {
@@ -188,6 +178,14 @@ describe('eventsService', function() {
                     orderableId: this.orderables[0],
                     occurredDate: '2017-01-01'
                 }]
+            }
+        ];
+
+        this.localStorageSyncEventErrors = {};
+        this.localStorageSyncEventErrors['user_1'] = [
+            {
+                event: 'event_1',
+                error: 'error_1'
             }
         ];
 
@@ -233,52 +231,7 @@ describe('eventsService', function() {
     describe('getOfflineEvents', function() {
 
         it('should get a list of offline events', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
-            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
-
-            var eventsCount;
-            this.eventsService.getOfflineEvents().then(function(result) {
-                eventsCount = result;
-            });
-            this.$rootScope.$apply();
-
-            expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(eventsCount).toEqual(this.filteredEvents);
-        });
-
-        it('should get empty list if stock events in local storage are empty', function() {
-            localStorageService.get.andReturn(null);
-            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
-
-            var eventsCount;
-            this.eventsService.getOfflineEvents().then(function(result) {
-                eventsCount = result;
-            });
-            this.$rootScope.$apply();
-
-            expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(eventsCount).toEqual([]);
-        });
-
-        it('should get empty list if stock events in local storage are empty for specific user', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
-            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
-
-            var eventsCount;
-            this.eventsService.getOfflineEvents().then(function(result) {
-                eventsCount = result;
-            });
-            this.$rootScope.$apply();
-
-            expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(eventsCount).toEqual([]);
-        });
-
-        it('should prepare proper event object to display', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
@@ -288,13 +241,106 @@ describe('eventsService', function() {
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(events).toEqual(this.filteredEvents);
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(events).toEqual(this.localStorageEvents[this.user1.id]);
+        });
+
+        it('should get empty list if stock events in local storage are empty', function() {
+            stockEventCacheService.getStockEvents.andReturn(null);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var events;
+            this.eventsService.getOfflineEvents().then(function(result) {
+                events = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(events).toEqual([]);
+        });
+
+        it('should get empty list if stock events in local storage are empty for specific user', function() {
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
+
+            var events;
+            this.eventsService.getOfflineEvents().then(function(result) {
+                events = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(events).toEqual([]);
+        });
+
+        it('should prepare proper event object to display', function() {
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var events;
+            this.eventsService.getOfflineEvents().then(function(result) {
+                events = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(events).toEqual(this.localStorageEvents[this.user1.id]);
             expect(events[2].facility).toEqual(this.homeFacility);
             expect(events[2].eventType).toEqual(this.EVENT_TYPES.ADJUSTMENT);
             expect(events[2].program).toEqual(this.programs[0]);
         });
 
+    });
+
+    describe('getUserEventsSynchronizationErrors', function() {
+
+        it('should get a list of offline events errors', function() {
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var syncEventErrors;
+            this.eventsService.getUserEventsSynchronizationErrors().then(function(result) {
+                syncEventErrors = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEventsSynchronizationErrors).toHaveBeenCalled();
+            expect(syncEventErrors).toEqual(this.localStorageSyncEventErrors[this.user1.id]);
+        });
+
+        it('should get empty list if stock events error in local storage are empty', function() {
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(null);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            var syncEventErrors;
+            this.eventsService.getUserEventsSynchronizationErrors().then(function(result) {
+                syncEventErrors = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEventsSynchronizationErrors).toHaveBeenCalled();
+            expect(syncEventErrors).toEqual([]);
+        });
+
+        it('should get empty list if stock events error in local storage are empty for specific user', function() {
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
+
+            var syncEventErrors;
+            this.eventsService.getUserEventsSynchronizationErrors().then(function(result) {
+                syncEventErrors = result;
+            });
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEventsSynchronizationErrors).toHaveBeenCalled();
+            expect(syncEventErrors).toEqual([]);
+        });
     });
 
     describe('removeOfflineEvent', function() {
@@ -308,7 +354,7 @@ describe('eventsService', function() {
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
             expect(localStorageService.get).toHaveBeenCalled();
-            expect(this.localStorageEvents.user_1.length).toEqual(3);
+            expect(this.localStorageEvents.user_1.length).toEqual(2);
         });
 
         it('should do nothing when no offline events', function() {
@@ -340,7 +386,7 @@ describe('eventsService', function() {
     describe('search', function() {
 
         it('should return events filtered by startDate param', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
@@ -354,12 +400,12 @@ describe('eventsService', function() {
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
             expect(filtered).toEqual([this.localStorageEvents.user_1[0]]);
         });
 
         it('should return events filtered by endDate param', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
@@ -373,12 +419,12 @@ describe('eventsService', function() {
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(filtered).toEqual(this.filteredEvents);
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(filtered).toEqual(this.localStorageEvents[this.user1.id]);
         });
 
         it('should return events filtered by eventType param', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
@@ -392,12 +438,12 @@ describe('eventsService', function() {
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
             expect(filtered).toEqual([this.localStorageEvents.user_1[1]]);
         });
 
         it('should return events filtered by all params', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
@@ -413,7 +459,7 @@ describe('eventsService', function() {
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
             expect(filtered).toEqual([this.localStorageEvents.user_1[0]]);
         });
 

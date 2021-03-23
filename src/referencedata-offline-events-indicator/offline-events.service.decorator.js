@@ -19,42 +19,61 @@
 
     /**
      * @ngdoc service
-     * @name referencedata-pending-offline-events-indicator.pendingOfflineEventsService
+     * @name referencedata-offline-events-indicator.offlineEventsService
      *
      * @description
-     * Decorates methods to the pendingOfflineEventsService, making it so the 
+     * Decorates methods to the offlineEventsService, making it so the 
      * count of events is taken from the main offline events service.
      */
-    angular.module('referencedata-pending-offline-events-indicator')
+    angular.module('referencedata-offline-events-indicator')
         .config(config);
 
     config.$inject = ['$provide'];
 
     function config($provide) {
-        $provide.decorator('pendingOfflineEventsService', decorator);
+        $provide.decorator('offlineEventsService', decorator);
     }
 
     decorator.$inject = ['$delegate', 'eventsService'];
     function decorator($delegate, eventsService) {
 
-        $delegate.getCountOfOfflineEvents = getCountOfOfflineEvents;
+        $delegate.getCountOfPendingOfflineEvents = getCountOfPendingOfflineEvents;
+        $delegate.getCountOfSyncErrorEvents = getCountOfSyncErrorEvents;
 
         return {
-            getCountOfOfflineEvents: getCountOfOfflineEvents
+            getCountOfPendingOfflineEvents: getCountOfPendingOfflineEvents,
+            getCountOfSyncErrorEvents: getCountOfSyncErrorEvents
         };
 
         /**
          * @ngdoc method
-         * @methodOf referencedata-pending-offline-events-indicator.pendingOfflineEventsService
-         * @name getCountOfOfflineEvents
+         * @methodOf referencedata-offline-events-indicator.offlineEventsService
+         * @name getCountOfPendingOfflineEvents
          *
          * @description
          * Retrieves count of pending offline events from events service
          *
          * @return {Promise} the number of pending offline events
          */
-        function getCountOfOfflineEvents() {
+        function getCountOfPendingOfflineEvents() {
             return eventsService.getUserPendingEventsFromStorage()
+                .then(function(result) {
+                    return result.length;
+                });
+        }
+
+        /**
+         * @ngdoc method
+         * @methodOf referencedata-offline-events-indicator.offlineEventsService
+         * @name getCountOfSyncErrorEvents
+         *
+         * @description
+         * Returned count of synchronized event errors from cache
+         *
+         * @return {Promise} the number of synchronized event errors
+         */
+        function getCountOfSyncErrorEvents() {
+            return eventsService.getUserEventsSynchronizationErrors()
                 .then(function(result) {
                     return result.length;
                 });

@@ -30,15 +30,17 @@
 
     service.$inject = ['localStorageService', 'currentUserService', 'EVENT_TYPES', '$q',
         'facilityFactory', 'OrderableResource', 'lotService', 'stockReasonsFactory',
-        'sourceDestinationService'];
+        'sourceDestinationService', 'stockEventCacheService'];
 
     function service(localStorageService, currentUserService, EVENT_TYPES, $q, facilityFactory,
-                     OrderableResource, lotService, stockReasonsFactory, sourceDestinationService) {
+                     OrderableResource, lotService, stockReasonsFactory, sourceDestinationService,
+                     stockEventCacheService) {
 
         var STOCK_EVENTS = 'stockEvents';
 
         return {
             getUserPendingEventsFromStorage: getUserPendingEventsFromStorage,
+            getUserEventsSynchronizationErrors: getUserEventsSynchronizationErrors,
             getOfflineEvents: getOfflineEvents,
             removeOfflineEvent: removeOfflineEvent,
             search: search
@@ -50,19 +52,37 @@
          * @name getUserPendingEventsFromStorage
          *
          * @description
-         * Retrieves pending offline events from cache that have not been synchronized
+         * Retrieves pending offline events from cache for current user
          *
          * @return {Promise} the Array of events created offline by current user
          */
         function getUserPendingEventsFromStorage() {
-            return getAllUserEventsFromStorage().then(function(events) {
-                if (!events) {
-                    return [];
-                }
-                return events.filter(function(event) {
-                    return !event.sent && !event.error;
+            return currentUserService.getUserInfo()
+                .then(function(user) {
+                    var offlineEvents = stockEventCacheService.getStockEvents();
+                    return offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [];
                 });
-            });
+        }
+
+        /**
+         * @ngdoc method
+         * @methodOf offline-events.eventsService
+         * @name getUserEventsSynchronizationErrors
+         *
+         * @description
+         * Retrieves synchronization event errors from cache for current user
+         *
+         * @return {Promise} the Array of events which failed during synchronization
+         */
+        function getUserEventsSynchronizationErrors() {
+            return currentUserService.getUserInfo()
+                .then(function(user) {
+                    var syncErrors = stockEventCacheService.getStockEventsSynchronizationErrors();
+                    if (syncErrors) {
+                        syncErrors = angular.fromJson(syncErrors)[user.id];
+                    }
+                    return syncErrors ? syncErrors : [];
+                });
         }
 
         /**
@@ -213,14 +233,6 @@
                     });
 
                     return filtredEvents;
-                });
-        }
-
-        function getAllUserEventsFromStorage() {
-            return currentUserService.getUserInfo()
-                .then(function(user) {
-                    var offlineEvents = localStorageService.get(STOCK_EVENTS);
-                    return offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [];
                 });
         }
 

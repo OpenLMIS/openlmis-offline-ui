@@ -18,13 +18,13 @@
     'use strict';
 
     /**
-     * @module referencedata-pending-offline-events-indicator
+     * @module referencedata-offline-events-indicator
      *
      * @description
-     * Provides pending offline events
+     * Provides offline events
      */
-    angular.module('referencedata-pending-offline-events-indicator', [
-        'openlmis-pending-offline-events-indicator'
+    angular.module('referencedata-offline-events-indicator', [
+        'openlmis-offline-events-indicator'
     ]);
 
 })();
