@@ -1,0 +1,22 @@
+{
+    "synchronizationErrors.title": "Offline synchronization errors",
+    "synchronizationErrors.pendingEvent": "Pending event",
+    "synchronizationErrors.details": "Details",
+    "synchronizationErrors.errorMessage": "Error message",
+    "synchronizationErrors.date": "Date",
+    "synchronizationErrors.actions": "Actions",
+    "synchronizationErrors.issue": "Issue",
+    "synchronizationErrors.receive": "Receive",
+    "synchronizationErrors.adjustment": "Adjustment",
+    "synchronizationErrors.noEvents": "No synchronization errors",
+    "synchronizationErrors.dismiss": "Dismiss",
+    "synchronizationErrors.retry": "Retry",
+    "synchronizationErrors.stockManagement": "Stock Management",
+    "synchronizationErrors.noLots": "No lots",
+    "synchronizationErrors.receivedFrom": "Received from",
+    "synchronizationErrors.issueTo": "Issue to",
+    "synchronizationErrors.reason": "Reason",
+    "synchronizationErrors.quantity": "Quantity",
+    "synchronizationErrors.eventErrorMessage": "We couldn't perform this event.",
+    "synchronizationErrors.noErrorMessage": "No details available, try to resend the event."
+}

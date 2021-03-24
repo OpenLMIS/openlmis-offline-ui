@@ -1,0 +1,49 @@
+<h2 class="is-offline">
+    {{'synchronizationErrors.title' | message}}
+</h2>
+
+<div class="stock-adjustment-creation">
+    <section class="openlmis-table-container">
+        <table suppress-tr-openlmis-invalid>
+            <caption ng-if="!vm.synchronizationErrors.length">{{'synchronizationErrors.noEvents' | message}}</caption>
+            <thead>
+            <tr>
+                <th>{{'synchronizationErrors.pendingEvent' | message}}</th>
+                <th>{{'synchronizationErrors.details' | message}}</th>
+                <th>{{'synchronizationErrors.errorMessage' | message}}</th>
+                <th>{{'synchronizationErrors.date' | message}}</th>
+                <th>{{'synchronizationErrors.actions' | message}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="event in vm.events">
+                <td>{{vm.getEventTypeLabel(event.eventType) | message}} <i>({{'synchronizationErrors.stockManagement' | message}})</i></td>
+                <td>
+                    <p ng-repeat="item in event.lineItems">
+                        <span ng-if="vm.eventTypes['ADJUSTMENT'] === event.eventType">{{event.facility.name}}; </span>
+                        <span>{{event.program.name}}; </span>
+                        <b>{{item.orderable.fullProductName}}; </b>
+                        <span ng-if="!item.lot">{{'synchronizationErrors.noLots' | message}}; </span>
+                        <span ng-if="item.lot">{{item.lot.lotCode}}; </span>
+                        <span ng-if="vm.eventTypes['ISSUE'] === event.eventType"><b>{{'synchronizationErrors.issueTo' | message}}: </b>{{item.destination.name}}; </span>
+                        <span ng-if="vm.eventTypes['RECEIVE'] === event.eventType"><b>{{'synchronizationErrors.receivedFrom' | message}}: </b>{{item.source.name}}; </span>
+                        <span ng-if="vm.eventTypes['ADJUSTMENT'] === event.eventType"><b>{{'synchronizationErrors.reason' | message}}: </b>{{item.reason.name}}; </span>
+                        <span><b>{{'synchronizationErrors.quantity' | message}}: </b>{{item.quantity}}</span>
+                    </p>
+                </td>
+                <td>
+                    <span>{{'synchronizationErrors.eventErrorMessage' | message}} </span>
+                    <span ng-if="!event.error.data || !event.error.data.message">{{'synchronizationErrors.noErrorMessage' | message}} </span>
+                    <span ng-if="event.error.data && event.error.data.message">{{event.error.data.message}}</span>
+                </td>
+                <td>{{event.lineItems[0].occurredDate | openlmisDate}}</td>
+                <td>
+                    <button type="button" class="danger" ng-click="vm.remove(event)">{{'synchronizationErrors.dismiss' | message}}</button>
+                    <button type="button" class="primary" ng-click="vm.retry(event)">{{'synchronizationErrors.retry' | message}}</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <openlmis-pagination list="vm.synchronizationErrors" paged-list="vm.events"/>
+    </section>
+</div>

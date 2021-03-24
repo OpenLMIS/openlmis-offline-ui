@@ -30,19 +30,23 @@
 
     service.$inject = ['localStorageService', 'currentUserService', 'EVENT_TYPES', '$q',
         'facilityFactory', 'OrderableResource', 'lotService', 'stockReasonsFactory',
-        'sourceDestinationService', 'stockEventCacheService'];
+        'sourceDestinationService', 'stockEventCacheService', 'StockEventResource'];
 
     function service(localStorageService, currentUserService, EVENT_TYPES, $q, facilityFactory,
                      OrderableResource, lotService, stockReasonsFactory, sourceDestinationService,
-                     stockEventCacheService) {
+                     stockEventCacheService, StockEventResource) {
 
         var STOCK_EVENTS = 'stockEvents';
+        var STOCK_EVENTS_SYNCHRONIZATION_ERRORS = 'stockEventsSynchronizationErrors';
 
         return {
             getUserPendingEventsFromStorage: getUserPendingEventsFromStorage,
             getUserEventsSynchronizationErrors: getUserEventsSynchronizationErrors,
             getOfflineEvents: getOfflineEvents,
+            getEventsSynchronizationErrors: getEventsSynchronizationErrors,
             removeOfflineEvent: removeOfflineEvent,
+            removeEventSynchronizationError: removeEventSynchronizationError,
+            retryFailedSynchronizationEvent: retryFailedSynchronizationEvent,
             search: search
         };
 
@@ -101,70 +105,27 @@
 
             return getUserPendingEventsFromStorage()
                 .then(function(userEvents) {
-                    var homeFacility,
-                        programs = [],
-                        sources = [],
-                        destinations = [],
-                        validAssignmentsList = [],
-                        orderableIds = [],
-                        lotIds = [],
-                        promises = [];
+                    return fetchAndCombineEventData(userEvents, orderableResource);
+                });
+        }
 
-                    if (!userEvents) {
-                        return [];
-                    }
+        /**
+         * @ngdoc method
+         * @methodOf offline-events.eventsService
+         * @name getOfflineEvents
+         *
+         * @description
+         * Retrieves pending offline events for the current user
+         * and combines them with all necessary data
+         *
+         * @return {Promise} the Array of pending offline events
+         */
+        function getEventsSynchronizationErrors() {
+            var orderableResource = new OrderableResource();
 
-                    return facilityFactory.getUserHomeFacility().then(function(facility) {
-                        homeFacility = facility;
-                        programs = homeFacility.supportedPrograms;
-                        promises = getSourceDestinationPromises(programs, homeFacility, promises);
-
-                        return $q.all(promises).then(function(responses) {
-                            sources = responses[0];
-                            destinations = responses[1];
-
-                            userEvents.forEach(function(event) {
-                                event.lineItems.forEach(function(item) {
-
-                                    validAssignmentsList = getValidAssignments(
-                                        item, sources, destinations, validAssignmentsList
-                                    );
-
-                                    orderableIds = getIds(item.orderableId, orderableIds);
-                                    lotIds = getIds(item.lotId, lotIds);
-                                });
-                            });
-
-                            return $q.resolve({
-                                orderableIds: orderableIds,
-                                lotIds: lotIds,
-                                validAssignmentsList: validAssignmentsList,
-                                userEvents: userEvents
-                            });
-                        })
-                            .then(function(result) {
-                                return $q.all([
-                                    orderableResource.query({
-                                        id: result.orderableIds
-                                    }),
-                                    lotService.query({
-                                        id: result.lotIds
-                                    }),
-                                    stockReasonsFactory.getReasons(),
-                                    result.validAssignmentsList,
-                                    result.userEvents
-                                ]).then(function(responses) {
-                                    var orderables = responses[0].content,
-                                        lots = responses[1].content,
-                                        reasons = responses[2],
-                                        validAssignmentsList = responses[3],
-                                        userEvents = responses[4];
-
-                                    return combineResponses(userEvents, programs, homeFacility, orderables,
-                                        lots, reasons, validAssignmentsList);
-                                });
-                            });
-                    });
+            return getUserEventsSynchronizationErrors()
+                .then(function(userEvents) {
+                    return fetchAndCombineEventData(userEvents, orderableResource);
                 });
         }
 
@@ -203,6 +164,57 @@
         /**
          * @ngdoc method
          * @methodOf offline-events.eventsService
+         * @name removeEventSynchronizationError
+         *
+         * @description
+         * Removes the event synchronization error
+         *
+         * @param  {Object}  event the event that should be removed
+         */
+        function removeEventSynchronizationError(event) {
+            currentUserService.getUserInfo()
+                .then(function(user) {
+                    var synchronizationErrors = localStorageService.get(STOCK_EVENTS_SYNCHRONIZATION_ERRORS);
+
+                    if (!synchronizationErrors) {
+                        return;
+                    }
+
+                    synchronizationErrors = angular.fromJson(synchronizationErrors);
+                    var userEvents = synchronizationErrors[user.id];
+
+                    if (!userEvents) {
+                        return;
+                    }
+
+                    userEvents.splice(event.ind, 1);
+
+                    localStorageService.add(STOCK_EVENTS_SYNCHRONIZATION_ERRORS, angular.toJson(synchronizationErrors));
+                });
+        }
+
+        /**
+         * @ngdoc method
+         * @methodOf offline-events.eventsService
+         * @name retryFailedSynchronizationEvent
+         *
+         * @description
+         * Tries to resend failed offline event.
+         *
+         * @param  {Object}  event the event that should be resend
+         */
+        function retryFailedSynchronizationEvent(event) {
+            var resource = new StockEventResource();
+
+            return resource.create(event)
+                .then(function() {
+                    removeEventSynchronizationError(event);
+                });
+        }
+
+        /**
+         * @ngdoc method
+         * @methodOf offline-events.eventsService
          * @name search
          *
          * @description
@@ -234,6 +246,73 @@
 
                     return filtredEvents;
                 });
+        }
+
+        function fetchAndCombineEventData(userEvents, orderableResource) {
+            var homeFacility,
+                programs = [],
+                sources = [],
+                destinations = [],
+                validAssignmentsList = [],
+                orderableIds = [],
+                lotIds = [],
+                promises = [];
+
+            if (!userEvents) {
+                return [];
+            }
+
+            return facilityFactory.getUserHomeFacility().then(function(facility) {
+                homeFacility = facility;
+                programs = homeFacility.supportedPrograms;
+                promises = getSourceDestinationPromises(programs, homeFacility, promises);
+
+                return $q.all(promises).then(function(responses) {
+                    sources = responses[0];
+                    destinations = responses[1];
+
+                    userEvents.forEach(function(event) {
+                        event.lineItems.forEach(function(item) {
+
+                            validAssignmentsList = getValidAssignments(
+                                item, sources, destinations, validAssignmentsList
+                            );
+
+                            orderableIds = getIds(item.orderableId, orderableIds);
+                            lotIds = getIds(item.lotId, lotIds);
+                        });
+                    });
+
+                    return $q.resolve({
+                        orderableIds: orderableIds,
+                        lotIds: lotIds,
+                        validAssignmentsList: validAssignmentsList,
+                        userEvents: userEvents
+                    });
+                })
+                    .then(function(result) {
+                        return $q.all([
+                            orderableResource.query({
+                                id: result.orderableIds
+                            }),
+                            lotService.query({
+                                id: result.lotIds
+                            }),
+                            stockReasonsFactory.getReasons(),
+                            result.validAssignmentsList,
+                            result.userEvents
+                        ]).then(function(responses) {
+                            var orderables = responses[0].content,
+                                lots = responses[1].content,
+                                reasons = responses[2],
+                                validAssignmentsList = responses[3],
+                                userEvents = responses[4];
+
+                            return combineResponses(userEvents, programs, homeFacility, orderables,
+                                lots, reasons, validAssignmentsList);
+                        });
+                    });
+            });
         }
 
         function combineResponses(userEvents, programs, homeFacility, orderables, lots, reasons,
