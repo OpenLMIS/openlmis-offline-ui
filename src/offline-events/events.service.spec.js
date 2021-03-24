@@ -15,7 +15,7 @@
 
 describe('eventsService', function() {
 
-    var currentUserService, localStorageService, stockEventCacheService;
+    var currentUserService, stockEventCacheService;
 
     beforeEach(function() {
         module('offline-events', function($provide) {
@@ -24,13 +24,9 @@ describe('eventsService', function() {
                 return currentUserService;
             });
 
-            localStorageService = jasmine.createSpyObj('localStorageService', ['get', 'add']);
-            $provide.service('localStorageService', function() {
-                return localStorageService;
-            });
             stockEventCacheService = jasmine.createSpyObj('stockEventCacheService', [
                 'getStockEvents', 'getStockEventsSynchronizationErrors',
-                'cacheStockEvents', 'cacheStockEventSynchronizationError'
+                'cacheStockEvents', 'cacheStockEventSynchronizationErrors'
             ]);
             $provide.service('stockEventCacheService', function() {
                 return stockEventCacheService;
@@ -186,6 +182,14 @@ describe('eventsService', function() {
             {
                 event: 'event_1',
                 error: 'error_1'
+            },
+            {
+                event: 'event_2',
+                error: 'error_2'
+            },
+            {
+                event: 'event_3',
+                error: 'error_3'
             }
         ];
 
@@ -246,7 +250,7 @@ describe('eventsService', function() {
         });
 
         it('should get empty list if stock events in local storage are empty', function() {
-            stockEventCacheService.getStockEvents.andReturn(null);
+            stockEventCacheService.getStockEvents.andReturn({});
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
@@ -313,7 +317,7 @@ describe('eventsService', function() {
         });
 
         it('should get empty list if stock events error in local storage are empty', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(null);
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn({});
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var syncEventErrors;
@@ -346,39 +350,79 @@ describe('eventsService', function() {
     describe('removeOfflineEvent', function() {
 
         it('should remove given event from the local storage', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
             expect(this.localStorageEvents.user_1.length).toEqual(2);
         });
 
         it('should do nothing when no offline events', function() {
-            localStorageService.get.andReturn(null);
+            stockEventCacheService.getStockEvents.andReturn({});
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(localStorageService.add).not.toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(stockEventCacheService.cacheStockEvents).not.toHaveBeenCalled();
         });
 
         it('should do nothing when no offline events for a given user', function() {
-            localStorageService.get.andReturn(this.localStorageEvents);
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
             this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
             this.$rootScope.$apply();
 
             expect(currentUserService.getUserInfo).toHaveBeenCalled();
-            expect(localStorageService.get).toHaveBeenCalled();
-            expect(localStorageService.add).not.toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEvents).toHaveBeenCalled();
+            expect(stockEventCacheService.cacheStockEvents).not.toHaveBeenCalled();
+        });
+
+    });
+
+    describe('removeEventSynchronizationError', function() {
+
+        it('should remove given synchronization error from the local storage', function() {
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            this.eventsService.removeEventSynchronizationError(this.localStorageSyncEventErrors.user_1[0]);
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEventsSynchronizationErrors).toHaveBeenCalled();
+            expect(this.localStorageSyncEventErrors.user_1.length).toEqual(2);
+        });
+
+        it('should do nothing when no synchronization errors', function() {
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn({});
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
+
+            this.eventsService.removeEventSynchronizationError(this.localStorageSyncEventErrors.user_1[0]);
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEventsSynchronizationErrors).toHaveBeenCalled();
+            expect(stockEventCacheService.cacheStockEventSynchronizationErrors).not.toHaveBeenCalled();
+        });
+
+        it('should do nothing when no synchronization errors for a given user', function() {
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
+
+            this.eventsService.removeEventSynchronizationError(this.localStorageSyncEventErrors.user_1[0]);
+            this.$rootScope.$apply();
+
+            expect(currentUserService.getUserInfo).toHaveBeenCalled();
+            expect(stockEventCacheService.getStockEventsSynchronizationErrors).toHaveBeenCalled();
+            expect(stockEventCacheService.cacheStockEventSynchronizationErrors).not.toHaveBeenCalled();
         });
 
     });

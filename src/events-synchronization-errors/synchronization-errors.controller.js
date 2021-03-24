@@ -42,7 +42,7 @@
 
         /**
          * @ngdoc property
-         * @propertyOf offline-events.controller:OfflineEventsController
+         * @propertyOf events-synchronization-errors.controller:SynchronizationErrors
          * @name synchronizationErrors
          * @type {Array}
          *
@@ -53,7 +53,7 @@
 
         /**
          * @ngdoc method
-         * @methodOf offline-events.controller:OfflineEventsController
+         * @methodOf events-synchronization-errors.controller:SynchronizationErrors
          * @name remove
          *
          * @description
@@ -71,17 +71,22 @@
 
         /**
          * @ngdoc method
-         * @methodOf offline-events.controller:OfflineEventsController
-         * @name remove
+         * @methodOf events-synchronization-errors.controller:SynchronizationErrors
+         * @name retry
          *
          * @description
-         * Remove an offline event.
+         * Tries to resend failed offline event.
          *
          * @param {Object} event to be removed.
          */
         function retry(event) {
             eventsService.retryFailedSynchronizationEvent(event)
                 .then(function() {
+                    $state.go($state.current.name, $stateParams, {
+                        reload: true
+                    });
+                })
+                .catch(function() {
                     $state.go($state.current.name, $stateParams, {
                         reload: true
                     });

@@ -28,16 +28,13 @@
         .module('offline-events')
         .factory('eventsService', service);
 
-    service.$inject = ['localStorageService', 'currentUserService', 'EVENT_TYPES', '$q',
+    service.$inject = ['currentUserService', 'EVENT_TYPES', '$q',
         'facilityFactory', 'OrderableResource', 'lotService', 'stockReasonsFactory',
         'sourceDestinationService', 'stockEventCacheService', 'StockEventResource'];
 
-    function service(localStorageService, currentUserService, EVENT_TYPES, $q, facilityFactory,
+    function service(currentUserService, EVENT_TYPES, $q, facilityFactory,
                      OrderableResource, lotService, stockReasonsFactory, sourceDestinationService,
                      stockEventCacheService, StockEventResource) {
-
-        var STOCK_EVENTS = 'stockEvents';
-        var STOCK_EVENTS_SYNCHRONIZATION_ERRORS = 'stockEventsSynchronizationErrors';
 
         return {
             getUserPendingEventsFromStorage: getUserPendingEventsFromStorage,
@@ -64,7 +61,8 @@
             return currentUserService.getUserInfo()
                 .then(function(user) {
                     var offlineEvents = stockEventCacheService.getStockEvents();
-                    return offlineEvents ? angular.fromJson(offlineEvents)[user.id] : [];
+                    offlineEvents = offlineEvents[user.id];
+                    return offlineEvents ? offlineEvents : [];
                 });
         }
 
@@ -82,9 +80,7 @@
             return currentUserService.getUserInfo()
                 .then(function(user) {
                     var syncErrors = stockEventCacheService.getStockEventsSynchronizationErrors();
-                    if (syncErrors) {
-                        syncErrors = angular.fromJson(syncErrors)[user.id];
-                    }
+                    syncErrors = syncErrors[user.id];
                     return syncErrors ? syncErrors : [];
                 });
         }
@@ -142,13 +138,7 @@
         function removeOfflineEvent(event) {
             currentUserService.getUserInfo()
                 .then(function(user) {
-                    var offlineEvents = localStorageService.get(STOCK_EVENTS);
-
-                    if (!offlineEvents) {
-                        return;
-                    }
-
-                    offlineEvents = angular.fromJson(offlineEvents);
+                    var offlineEvents = stockEventCacheService.getStockEvents();
                     var userEvents = offlineEvents[user.id];
 
                     if (!userEvents) {
@@ -157,7 +147,7 @@
 
                     userEvents.splice(event.ind, 1);
 
-                    localStorageService.add(STOCK_EVENTS, angular.toJson(offlineEvents));
+                    stockEventCacheService.cacheStockEvents(userEvents, user.id);
                 });
         }
 
@@ -174,13 +164,7 @@
         function removeEventSynchronizationError(event) {
             currentUserService.getUserInfo()
                 .then(function(user) {
-                    var synchronizationErrors = localStorageService.get(STOCK_EVENTS_SYNCHRONIZATION_ERRORS);
-
-                    if (!synchronizationErrors) {
-                        return;
-                    }
-
-                    synchronizationErrors = angular.fromJson(synchronizationErrors);
+                    var synchronizationErrors = stockEventCacheService.getStockEventsSynchronizationErrors();
                     var userEvents = synchronizationErrors[user.id];
 
                     if (!userEvents) {
@@ -189,7 +173,7 @@
 
                     userEvents.splice(event.ind, 1);
 
-                    localStorageService.add(STOCK_EVENTS_SYNCHRONIZATION_ERRORS, angular.toJson(synchronizationErrors));
+                    stockEventCacheService.cacheStockEventSynchronizationErrors(userEvents, user.id);
                 });
         }
 
@@ -206,9 +190,25 @@
         function retryFailedSynchronizationEvent(event) {
             var resource = new StockEventResource();
 
-            return resource.create(event)
-                .then(function() {
-                    removeEventSynchronizationError(event);
+            return currentUserService.getUserInfo()
+                .then(function(user) {
+
+                    var synchronizationErrors = stockEventCacheService.getStockEventsSynchronizationErrors();
+                    var userEvents = synchronizationErrors[user.id];
+
+                    if (!userEvents) {
+                        return;
+                    }
+
+                    userEvents.splice(event.ind, 1);
+                    stockEventCacheService.cacheStockEventSynchronizationErrors(userEvents, user.id);
+
+                    return resource.create(event)
+                        .catch(function(error) {
+                            stockEventCacheService.createErrorEventObjectAndCacheSynchronizationError(
+                                event, error, user.id
+                            );
+                        });
                 });
         }
 
