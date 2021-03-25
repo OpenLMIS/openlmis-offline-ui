@@ -19,7 +19,7 @@
 
     /**
      * @ngdoc controller
-     * @name events-synchronization-errors.controller:SynchronizationErrors
+     * @name events-synchronization-errors.controller:SynchronizationErrorsController
      *
      * @description
      * Controller for managing synchronization errors.
@@ -42,7 +42,7 @@
 
         /**
          * @ngdoc property
-         * @propertyOf events-synchronization-errors.controller:SynchronizationErrors
+         * @propertyOf events-synchronization-errors.controller:SynchronizationErrorsController
          * @name synchronizationErrors
          * @type {Array}
          *
@@ -53,7 +53,7 @@
 
         /**
          * @ngdoc method
-         * @methodOf events-synchronization-errors.controller:SynchronizationErrors
+         * @methodOf events-synchronization-errors.controller:SynchronizationErrorsController
          * @name remove
          *
          * @description
@@ -71,7 +71,7 @@
 
         /**
          * @ngdoc method
-         * @methodOf events-synchronization-errors.controller:SynchronizationErrors
+         * @methodOf events-synchronization-errors.controller:SynchronizationErrorsController
          * @name retry
          *
          * @description
