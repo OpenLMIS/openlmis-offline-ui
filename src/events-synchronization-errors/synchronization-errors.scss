@@ -1,0 +1,11 @@
+.synchronization-error {
+  color: $brand-danger;
+}
+
+.synchronization-actions {
+  display: flex;
+
+  button {
+    margin-right: 0.5em;
+  }
+}

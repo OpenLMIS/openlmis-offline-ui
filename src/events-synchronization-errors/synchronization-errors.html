@@ -31,15 +31,17 @@
                         <span><b>{{'synchronizationErrors.quantity' | message}}: </b>{{item.quantity}}</span>
                     </p>
                 </td>
-                <td>
+                <td class="synchronization-error">
                     <span>{{'synchronizationErrors.eventErrorMessage' | message}} </span>
                     <span ng-if="!event.error.data || !event.error.data.message">{{'synchronizationErrors.noErrorMessage' | message}} </span>
                     <span ng-if="event.error.data && event.error.data.message">{{event.error.data.message}}</span>
                 </td>
                 <td>{{event.lineItems[0].occurredDate | openlmisDate}}</td>
                 <td>
-                    <button type="button" class="danger" ng-click="vm.remove(event)">{{'synchronizationErrors.dismiss' | message}}</button>
-                    <button type="button" class="primary" ng-click="vm.retry(event)">{{'synchronizationErrors.retry' | message}}</button>
+                    <div class="synchronization-actions">
+                        <button type="button" class="danger" ng-click="vm.remove(event)">{{'synchronizationErrors.dismiss' | message}}</button>
+                        <button type="button" class="primary" ng-click="vm.retry(event)">{{'synchronizationErrors.retry' | message}}</button>
+                    </div>
                 </td>
             </tr>
             </tbody>
