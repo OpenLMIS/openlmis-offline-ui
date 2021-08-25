@@ -1,3 +1,10 @@
+1.0.1 / WIP
+==================
+
+Improvements:
+* [OLMIS-7314](https://openlmis.atlassian.net/browse/OLMIS-7314): Update scss files to enable webpack build.
+
+
 1.0.0 / 2021-05-27
 ==================
 
