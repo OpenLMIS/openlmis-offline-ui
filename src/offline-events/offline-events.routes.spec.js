@@ -49,7 +49,7 @@ describe('openlmis.pendingOfflineEvents state', function() {
     });
 
     it('should resolve offline events', function() {
-        this.eventsService.search.andReturn(this.$q.when(this.events));
+        this.eventsService.search.and.returnValue(this.$q.when(this.events));
 
         this.goToUrl('/offlineEvents');
 

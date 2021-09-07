@@ -90,7 +90,7 @@ describe('SynchronizationErrorsController', function() {
         it('should retry the failed synchronization event', function() {
             var deferred = this.$q.defer();
             deferred.resolve();
-            this.eventsService.retryFailedSynchronizationEvent.andReturn(deferred.promise);
+            this.eventsService.retryFailedSynchronizationEvent.and.returnValue(deferred.promise);
 
             var existingEvent = {
                 id: 'existingEvent'
