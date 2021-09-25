@@ -193,15 +193,14 @@ describe('eventsService', function() {
             }
         ];
 
-        spyOn(this.OrderableResource.prototype, 'query').and.returnValue(this.$q.resolve(this.orderablesPage));
-        spyOn(this.facilityFactory, 'getUserHomeFacility').and.returnValue(this.$q.resolve(this.homeFacility));
-        spyOn(this.stockReasonsFactory, 'getReasons').and.returnValue(this.$q.resolve(this.reasons));
-        spyOn(this.sourceDestinationService, 'getSourceAssignments')
-            .and.returnValue(this.$q.resolve(this.validSources));
+        spyOn(this.OrderableResource.prototype, 'query').andReturn(this.$q.resolve(this.orderablesPage));
+        spyOn(this.facilityFactory, 'getUserHomeFacility').andReturn(this.$q.resolve(this.homeFacility));
+        spyOn(this.stockReasonsFactory, 'getReasons').andReturn(this.$q.resolve(this.reasons));
+        spyOn(this.sourceDestinationService, 'getSourceAssignments').andReturn(this.$q.resolve(this.validSources));
         spyOn(this.sourceDestinationService, 'getDestinationAssignments')
-            .and.returnValue(this.$q.resolve(this.validDestinations));
+            .andReturn(this.$q.resolve(this.validDestinations));
 
-        spyOn(this.lotService, 'query').and.returnValue(this.$q.when(
+        spyOn(this.lotService, 'query').andReturn(this.$q.when(
             new this.PageDataBuilder()
                 .withContent([
                     new this.LotDataBuilder().withId('lot-1')
@@ -236,8 +235,8 @@ describe('eventsService', function() {
     describe('getOfflineEvents', function() {
 
         it('should get a list of offline events', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
             this.eventsService.getOfflineEvents().then(function(result) {
@@ -251,8 +250,8 @@ describe('eventsService', function() {
         });
 
         it('should get empty list if stock events in local storage are empty', function() {
-            stockEventCacheService.getStockEvents.and.returnValue({});
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn({});
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
             this.eventsService.getOfflineEvents().then(function(result) {
@@ -266,8 +265,8 @@ describe('eventsService', function() {
         });
 
         it('should get empty list if stock events in local storage are empty for specific user', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user3));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
             var events;
             this.eventsService.getOfflineEvents().then(function(result) {
@@ -281,8 +280,8 @@ describe('eventsService', function() {
         });
 
         it('should prepare proper event object to display', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
             this.eventsService.getOfflineEvents().then(function(result) {
@@ -303,9 +302,8 @@ describe('eventsService', function() {
     describe('getUserEventsSynchronizationErrors', function() {
 
         it('should get a list of offline events errors', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors
-                .and.returnValue(this.localStorageSyncEventErrors);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var syncEventErrors;
             this.eventsService.getUserEventsSynchronizationErrors().then(function(result) {
@@ -319,8 +317,8 @@ describe('eventsService', function() {
         });
 
         it('should get empty list if stock events error in local storage are empty', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors.and.returnValue({});
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn({});
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var syncEventErrors;
             this.eventsService.getUserEventsSynchronizationErrors().then(function(result) {
@@ -334,9 +332,8 @@ describe('eventsService', function() {
         });
 
         it('should get empty list if stock events error in local storage are empty for specific user', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors
-                .and.returnValue(this.localStorageSyncEventErrors);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user3));
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
             var syncEventErrors;
             this.eventsService.getUserEventsSynchronizationErrors().then(function(result) {
@@ -353,8 +350,8 @@ describe('eventsService', function() {
     describe('removeOfflineEvent', function() {
 
         it('should remove given event from the local storage', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
             this.$rootScope.$apply();
@@ -365,8 +362,8 @@ describe('eventsService', function() {
         });
 
         it('should do nothing when no offline events', function() {
-            stockEventCacheService.getStockEvents.and.returnValue({});
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn({});
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
             this.$rootScope.$apply();
@@ -377,8 +374,8 @@ describe('eventsService', function() {
         });
 
         it('should do nothing when no offline events for a given user', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user3));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
             this.eventsService.removeOfflineEvent(this.localStorageEvents.user_1[0]);
             this.$rootScope.$apply();
@@ -393,9 +390,8 @@ describe('eventsService', function() {
     describe('removeEventSynchronizationError', function() {
 
         it('should remove given synchronization error from the local storage', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors
-                .and.returnValue(this.localStorageSyncEventErrors);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             this.eventsService.removeEventSynchronizationError(this.localStorageSyncEventErrors.user_1[0]);
             this.$rootScope.$apply();
@@ -406,8 +402,8 @@ describe('eventsService', function() {
         });
 
         it('should do nothing when no synchronization errors', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors.and.returnValue({});
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn({});
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             this.eventsService.removeEventSynchronizationError(this.localStorageSyncEventErrors.user_1[0]);
             this.$rootScope.$apply();
@@ -418,9 +414,8 @@ describe('eventsService', function() {
         });
 
         it('should do nothing when no synchronization errors for a given user', function() {
-            stockEventCacheService.getStockEventsSynchronizationErrors
-                .and.returnValue(this.localStorageSyncEventErrors);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user3));
+            stockEventCacheService.getStockEventsSynchronizationErrors.andReturn(this.localStorageSyncEventErrors);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
             this.eventsService.removeEventSynchronizationError(this.localStorageSyncEventErrors.user_1[0]);
             this.$rootScope.$apply();
@@ -435,8 +430,8 @@ describe('eventsService', function() {
     describe('search', function() {
 
         it('should return events filtered by startDate param', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
                 startDate: '2017-02-01'
@@ -454,8 +449,8 @@ describe('eventsService', function() {
         });
 
         it('should return events filtered by endDate param', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
                 endDate: '2020-02-01'
@@ -473,8 +468,8 @@ describe('eventsService', function() {
         });
 
         it('should return events filtered by eventType param', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
                 eventType: this.EVENT_TYPES.RECEIVE
@@ -492,8 +487,8 @@ describe('eventsService', function() {
         });
 
         it('should return events filtered by all params', function() {
-            stockEventCacheService.getStockEvents.and.returnValue(this.localStorageEvents);
-            currentUserService.getUserInfo.and.returnValue(this.$q.resolve(this.user1));
+            stockEventCacheService.getStockEvents.andReturn(this.localStorageEvents);
+            currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var params = {
                 startDate: '2017-02-01',

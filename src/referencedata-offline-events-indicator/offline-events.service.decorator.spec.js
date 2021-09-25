@@ -67,8 +67,7 @@ describe('Offline Events Service Decorator', function() {
 
     describe('getCountOfPendingOfflineEvents', function() {
         it('should get count of offline events', function() {
-            eventsService.getUserPendingEventsFromStorage
-                .and.returnValue(this.$q.resolve(this.localStoragePendingEvents));
+            eventsService.getUserPendingEventsFromStorage.andReturn(this.$q.resolve(this.localStoragePendingEvents));
 
             var eventsCount;
             this.offlineEventsService.getCountOfPendingOfflineEvents().then(function(result) {
@@ -80,7 +79,7 @@ describe('Offline Events Service Decorator', function() {
         });
 
         it('should get 0 if there are no offline events', function() {
-            eventsService.getUserPendingEventsFromStorage.and.returnValue(this.$q.resolve([]));
+            eventsService.getUserPendingEventsFromStorage.andReturn(this.$q.resolve([]));
 
             var eventsCount;
             this.offlineEventsService.getCountOfPendingOfflineEvents().then(function(result) {
@@ -94,8 +93,7 @@ describe('Offline Events Service Decorator', function() {
 
     describe('getCountOfSyncErrorEvents', function() {
         it('should get count of offline events error', function() {
-            eventsService.getUserEventsSynchronizationErrors
-                .and.returnValue(this.$q.resolve(this.localStorageErrorEvents));
+            eventsService.getUserEventsSynchronizationErrors.andReturn(this.$q.resolve(this.localStorageErrorEvents));
 
             var eventsCount;
             this.offlineEventsService.getCountOfSyncErrorEvents().then(function(result) {
@@ -107,7 +105,7 @@ describe('Offline Events Service Decorator', function() {
         });
 
         it('should get 0 if there are no offline events error', function() {
-            eventsService.getUserEventsSynchronizationErrors.and.returnValue(this.$q.resolve([]));
+            eventsService.getUserEventsSynchronizationErrors.andReturn(this.$q.resolve([]));
 
             var eventsCount;
             this.offlineEventsService.getCountOfSyncErrorEvents().then(function(result) {

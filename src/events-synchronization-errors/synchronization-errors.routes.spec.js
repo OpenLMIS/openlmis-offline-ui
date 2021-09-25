@@ -49,7 +49,7 @@ describe('openlmis.eventsSynchronizationErrors state', function() {
     });
 
     it('should resolve offline events', function() {
-        this.eventsService.getEventsSynchronizationErrors.and.returnValue(this.$q.when(this.events));
+        this.eventsService.getEventsSynchronizationErrors.andReturn(this.$q.when(this.events));
 
         this.goToUrl('/synchronizationErrors');
 
