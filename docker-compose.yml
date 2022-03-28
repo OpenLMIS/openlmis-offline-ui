@@ -38,7 +38,7 @@ services:
     volumes:
       - '/openlmis-ui-layout'
   stockmanagement-ui:
-    image: openlmis/stockmanagement-ui:2.1.1-RC2
+    image: openlmis/stockmanagement-ui:2.1.2-RC2
     volumes:
      - '/openlmis-stockmanagement-ui'
   image:
