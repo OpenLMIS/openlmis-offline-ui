@@ -1,7 +1,7 @@
 version: "2"
 services:
   offline-ui:
-    image: openlmis/dev-ui:9.0.5
+    image: openlmis/dev-ui:9.0.6-SNAPSHOT
     working_dir: /app
     volumes:
       - '.:/app'
@@ -22,23 +22,23 @@ services:
       - ui-layout
       - stockmanagement-ui
   auth-ui:
-    image: openlmis/auth-ui:6.2.10
+    image: openlmis/auth-ui:6.2.11-SNAPSHOT
     volumes:
       - '/openlmis-auth-ui'
   referencedata-ui:
-    image: openlmis/referencedata-ui:5.6.10
+    image: openlmis/referencedata-ui:5.6.11-SNAPSHOT
     volumes:
       - '/openlmis-referencedata-ui'
   ui-components:
-    image: openlmis/ui-components:7.2.9
+    image: openlmis/ui-components:7.2.10-SNAPSHOT
     volumes:
       - '/openlmis-ui-components'
   ui-layout:
-    image: openlmis/ui-layout:5.2.4
+    image: openlmis/ui-layout:5.2.5-SNAPSHOT
     volumes:
       - '/openlmis-ui-layout'
   stockmanagement-ui:
-    image: openlmis/stockmanagement-ui:2.1.5
+    image: openlmis/stockmanagement-ui:2.1.6-SNAPSHOT
     volumes:
      - '/openlmis-stockmanagement-ui'
   image:
