@@ -34,9 +34,15 @@
                 }
             },
             resolve: {
-                offlineEvents: function(paginationService, $stateParams, eventsService) {
+                user: function(authorizationService) {
+                    return authorizationService.getUser();
+                },
+                programs: function(user, stockProgramUtilService, STOCKMANAGEMENT_RIGHTS) {
+                    return stockProgramUtilService.getPrograms(user.user_id, STOCKMANAGEMENT_RIGHTS.STOCK_ADJUST);
+                },
+                offlineEvents: function(paginationService, $stateParams, eventsService, programs) {
                     return paginationService.registerList(null, $stateParams, function() {
-                        return eventsService.search($stateParams);
+                        return eventsService.search($stateParams, programs);
                     });
                 }
             }

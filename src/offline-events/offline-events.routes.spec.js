@@ -20,6 +20,8 @@ describe('openlmis.pendingOfflineEvents state', function() {
     beforeEach(function() {
         module('offline-events');
 
+        var MinimalFacilityDataBuilder, UserDataBuilder, ProgramDataBuilder;
+
         inject(function($injector) {
             this.$q = $injector.get('$q');
             this.$state = $injector.get('$state');
@@ -27,11 +29,28 @@ describe('openlmis.pendingOfflineEvents state', function() {
             this.$rootScope = $injector.get('$rootScope');
             this.paginationService = $injector.get('paginationService');
             this.eventsService = $injector.get('eventsService');
+            MinimalFacilityDataBuilder = $injector.get('MinimalFacilityDataBuilder');
+            UserDataBuilder = $injector.get('UserDataBuilder');
+            ProgramDataBuilder = $injector.get('ProgramDataBuilder');
+            this.facilityFactory = $injector.get('facilityFactory');
+            this.authorizationService =  $injector.get('authorizationService');
+            this.stockProgramUtilService =  $injector.get('stockProgramUtilService');
+            this.STOCKMANAGEMENT_RIGHTS = $injector.get('STOCKMANAGEMENT_RIGHTS');
         });
 
         this.events = [{
             id: 'existing-event'
         }];
+
+        this.homeFacility = new MinimalFacilityDataBuilder()
+            .build();
+        this.user = new UserDataBuilder()
+            .withHomeFacilityId(this.homeFacility.id)
+            .build();
+        this.programs = [
+            new ProgramDataBuilder().build(),
+            new ProgramDataBuilder().build()
+        ];
 
         this.$state.go('openlmis.pendingOfflineEvents');
         this.$rootScope.$apply();
@@ -46,6 +65,9 @@ describe('openlmis.pendingOfflineEvents state', function() {
         };
 
         spyOn(this.eventsService, 'search');
+        spyOn(this.facilityFactory, 'getUserHomeFacility').andReturn(this.$q.resolve(this.homeFacility));
+        spyOn(this.authorizationService, 'getUser').andReturn(this.$q.resolve(this.user));
+        spyOn(this.stockProgramUtilService, 'getPrograms').andReturn(this.$q.resolve(this.programs));
     });
 
     it('should resolve offline events', function() {
@@ -60,7 +82,23 @@ describe('openlmis.pendingOfflineEvents state', function() {
             eventType: undefined,
             startDate: undefined,
             endDate: undefined
-        });
+        }, this.programs);
+    });
+
+    it('should resolve user', function() {
+        this.eventsService.search.andReturn(this.$q.when(this.events));
+
+        this.goToUrl('/offlineEvents');
+
+        expect(this.getResolvedValue('user')).toEqual(this.user);
+    });
+
+    it('should resolve programs', function() {
+        this.eventsService.search.andReturn(this.$q.when(this.events));
+
+        this.goToUrl('/offlineEvents');
+
+        expect(this.getResolvedValue('programs')).toEqual(this.programs);
     });
 
 });

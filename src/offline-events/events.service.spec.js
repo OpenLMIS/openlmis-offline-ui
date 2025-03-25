@@ -239,7 +239,7 @@ describe('eventsService', function() {
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
-            this.eventsService.getOfflineEvents().then(function(result) {
+            this.eventsService.getOfflineEvents(this.programs).then(function(result) {
                 events = result;
             });
             this.$rootScope.$apply();
@@ -254,7 +254,7 @@ describe('eventsService', function() {
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
-            this.eventsService.getOfflineEvents().then(function(result) {
+            this.eventsService.getOfflineEvents(this.programs).then(function(result) {
                 events = result;
             });
             this.$rootScope.$apply();
@@ -269,7 +269,7 @@ describe('eventsService', function() {
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user3));
 
             var events;
-            this.eventsService.getOfflineEvents().then(function(result) {
+            this.eventsService.getOfflineEvents(this.programs).then(function(result) {
                 events = result;
             });
             this.$rootScope.$apply();
@@ -284,7 +284,7 @@ describe('eventsService', function() {
             currentUserService.getUserInfo.andReturn(this.$q.resolve(this.user1));
 
             var events;
-            this.eventsService.getOfflineEvents().then(function(result) {
+            this.eventsService.getOfflineEvents(this.programs).then(function(result) {
                 events = result;
             });
             this.$rootScope.$apply();
@@ -438,7 +438,7 @@ describe('eventsService', function() {
             };
 
             var filtered;
-            this.eventsService.search(params).then(function(result) {
+            this.eventsService.search(params, this.programs).then(function(result) {
                 filtered = result;
             });
             this.$rootScope.$apply();
@@ -457,7 +457,7 @@ describe('eventsService', function() {
             };
 
             var filtered;
-            this.eventsService.search(params).then(function(result) {
+            this.eventsService.search(params, this.programs).then(function(result) {
                 filtered = result;
             });
             this.$rootScope.$apply();
@@ -476,7 +476,7 @@ describe('eventsService', function() {
             };
 
             var filtered;
-            this.eventsService.search(params).then(function(result) {
+            this.eventsService.search(params, this.programs).then(function(result) {
                 filtered = result;
             });
             this.$rootScope.$apply();
@@ -497,7 +497,7 @@ describe('eventsService', function() {
             };
 
             var filtered;
-            this.eventsService.search(params).then(function(result) {
+            this.eventsService.search(params, this.programs).then(function(result) {
                 filtered = result;
             });
             this.$rootScope.$apply();
