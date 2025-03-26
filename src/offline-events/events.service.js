@@ -96,19 +96,19 @@
          *
          * @return {Promise} the Array of pending offline events
          */
-        function getOfflineEvents() {
+        function getOfflineEvents(programs) {
             var orderableResource = new OrderableResource();
 
             return getUserPendingEventsFromStorage()
                 .then(function(userEvents) {
-                    return fetchAndCombineEventData(userEvents, orderableResource);
+                    return fetchAndCombineEventData(userEvents, orderableResource, programs);
                 });
         }
 
         /**
          * @ngdoc method
          * @methodOf offline-events.eventsService
-         * @name getOfflineEvents
+         * @name getEventsSynchronizationErrors
          *
          * @description
          * Retrieves pending offline events for the current user
@@ -116,12 +116,12 @@
          *
          * @return {Promise} the Array of pending offline events
          */
-        function getEventsSynchronizationErrors() {
+        function getEventsSynchronizationErrors(programs) {
             var orderableResource = new OrderableResource();
 
             return getUserEventsSynchronizationErrors()
                 .then(function(userEvents) {
-                    return fetchAndCombineEventData(userEvents, orderableResource);
+                    return fetchAndCombineEventData(userEvents, orderableResource, programs);
                 });
         }
 
@@ -223,8 +223,8 @@
          * @param  {Object}  params the pagination and query parameters
          * @return {Promise}  the requested page of filtered events
          */
-        function search(params) {
-            return getOfflineEvents()
+        function search(params, programs) {
+            return getOfflineEvents(programs)
                 .then(function(events) {
                     var filtredEvents = events.filter(function(event) {
                         var eventDate = event.lineItems[0].occurredDate;
@@ -248,9 +248,8 @@
                 });
         }
 
-        function fetchAndCombineEventData(userEvents, orderableResource) {
+        function fetchAndCombineEventData(userEvents, orderableResource, programs) {
             var homeFacility,
-                programs = [],
                 sources = [],
                 destinations = [],
                 validAssignmentsList = [],
@@ -264,7 +263,7 @@
 
             return facilityFactory.getUserHomeFacility().then(function(facility) {
                 homeFacility = facility;
-                programs = homeFacility.supportedPrograms;
+
                 promises = getSourceDestinationPromises(programs, homeFacility, promises);
 
                 return $q.all(promises).then(function(responses) {

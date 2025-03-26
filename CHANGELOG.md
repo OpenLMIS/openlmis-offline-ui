@@ -1,5 +1,7 @@
 1.0.7-SNAPSHOT / WIP
 ==================
+Bug fixes:
+* [OLMIS-8135](https://openlmis.atlassian.net/browse/OLMIS-8135): Fetching programs to which the user has rights in stock management
 
 1.0.6 / 2024-10-2024
 ==================

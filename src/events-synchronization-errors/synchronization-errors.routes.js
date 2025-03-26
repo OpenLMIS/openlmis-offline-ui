@@ -33,9 +33,15 @@
                 }
             },
             resolve: {
-                synchronizationErrors: function(paginationService, $stateParams, eventsService) {
+                user: function(authorizationService) {
+                    return authorizationService.getUser();
+                },
+                programs: function(user, stockProgramUtilService, STOCKMANAGEMENT_RIGHTS) {
+                    return stockProgramUtilService.getPrograms(user.user_id, STOCKMANAGEMENT_RIGHTS.STOCK_ADJUST);
+                },
+                synchronizationErrors: function(paginationService, $stateParams, eventsService, programs) {
                     return paginationService.registerList(null, $stateParams, function() {
-                        return eventsService.getEventsSynchronizationErrors();
+                        return eventsService.getEventsSynchronizationErrors(programs);
                     });
                 }
             }
