@@ -16,7 +16,12 @@
 describe('SynchronizationErrorsController', function() {
 
     beforeEach(function() {
-        module('events-synchronization-errors');
+        module('events-synchronization-errors', function($provide) {
+            $provide.value('featureFlagService', {
+                set: function() {},
+                get: function() {}
+            });
+        });
 
         inject(function($injector) {
             this.$controller = $injector.get('$controller');

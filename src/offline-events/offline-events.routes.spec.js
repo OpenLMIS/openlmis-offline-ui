@@ -18,7 +18,12 @@ describe('openlmis.pendingOfflineEvents state', function() {
     'use strict';
 
     beforeEach(function() {
-        module('offline-events');
+        module('offline-events', function($provide) {
+            $provide.value('featureFlagService', {
+                set: function() {},
+                get: function() {}
+            });
+        });
 
         var MinimalFacilityDataBuilder, UserDataBuilder, ProgramDataBuilder;
 
