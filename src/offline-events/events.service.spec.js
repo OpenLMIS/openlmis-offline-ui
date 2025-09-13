@@ -24,6 +24,11 @@ describe('eventsService', function() {
                 return currentUserService;
             });
 
+            $provide.value('featureFlagService', {
+                set: function() {},
+                get: function() {}
+            });
+
             stockEventCacheService = jasmine.createSpyObj('stockEventCacheService', [
                 'getStockEvents', 'getStockEventsSynchronizationErrors',
                 'cacheStockEvents', 'cacheStockEventSynchronizationErrors'

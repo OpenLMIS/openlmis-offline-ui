@@ -16,7 +16,12 @@
 describe('EVENT_TYPES', function() {
 
     beforeEach(function() {
-        module('offline-events');
+        module('offline-events', function($provide) {
+            $provide.value('featureFlagService', {
+                set: function() {},
+                get: function() {}
+            });
+        });
 
         inject(function($injector) {
             this.EVENT_TYPES = $injector.get('EVENT_TYPES');

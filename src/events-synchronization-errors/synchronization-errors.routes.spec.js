@@ -18,7 +18,12 @@ describe('openlmis.eventsSynchronizationErrors state', function() {
     'use strict';
 
     beforeEach(function() {
-        module('events-synchronization-errors');
+        module('events-synchronization-errors', function($provide) {
+            $provide.value('featureFlagService', {
+                set: function() {},
+                get: function() {}
+            });
+        });
 
         var MinimalFacilityDataBuilder, UserDataBuilder, ProgramDataBuilder;
 

@@ -16,7 +16,12 @@
 describe('OfflineEventsController', function() {
 
     beforeEach(function() {
-        module('offline-events');
+        module('offline-events', function($provide) {
+            $provide.value('featureFlagService', {
+                set: function() {},
+                get: function() {}
+            });
+        });
 
         inject(function($injector) {
             this.$controller = $injector.get('$controller');
