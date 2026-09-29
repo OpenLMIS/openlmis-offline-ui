@@ -1,4 +1,4 @@
-Upcoming Version (WIP)
+1.0.9 / 2026-09-29
 ==================
 
 Improvements:
